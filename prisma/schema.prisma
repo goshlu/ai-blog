@@ -3,11 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Post {
@@ -17,7 +17,6 @@ model Post {
   date      String
   excerpt   String?
   content   String
-  tags      String   @default("") // 逗号分隔的标签
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

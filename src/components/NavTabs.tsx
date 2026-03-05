@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SearchBox } from "@/components/SearchBox";
 
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,7 @@ export function NavTabs() {
 
   return (
     <div className="hidden md:flex items-center justify-center">
-      <div className="flex items-center gap-6 rounded-full bg-white/95 shadow-sm border border-pink-100 px-6 py-2 text-sm text-neutral-600">
+      <div className="flex items-center gap-4 rounded-full bg-white/95 shadow-sm border border-pink-100 px-6 py-2 text-sm text-neutral-600">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === "/"
@@ -44,6 +45,8 @@ export function NavTabs() {
             </Link>
           );
         })}
+        <div className="w-px h-4 bg-zinc-200" />
+        <SearchBox />
       </div>
     </div>
   );
