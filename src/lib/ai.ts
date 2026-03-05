@@ -1,4 +1,4 @@
-import { generateText, streamText } from 'ai';
+import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 
 const deepseek = createOpenAI({
