@@ -1,11 +1,11 @@
-import { Post } from '@/types/post';
+import { Post } from "@/types/post";
 
 export const posts: Post[] = [
   {
-    slug: 'hello-world',
-    title: '你好，世界',
-    date: '2024-01-01',
-    excerpt: '这是我的第一篇博客文章，记录学习 Next.js 的心得。',
+    slug: "hello-world",
+    title: "你好，世界",
+    date: "2024-01-01",
+    excerpt: "这是我的第一篇博客文章，记录学习 Next.js 的心得。",
     content: `# 你好，世界
 
 欢迎来到我的博客！
@@ -27,12 +27,13 @@ console.log('Hello, World!');
 
 希望你喜欢这个博客！
 `,
+    tags: "Next.js,React,TypeScript",
   },
   {
-    slug: 'nextjs-guide',
-    title: 'Next.js 14 完全指南',
-    date: '2024-01-15',
-    excerpt: '深入探索 Next.js 14 的新特性和最佳实践。',
+    slug: "nextjs-guide",
+    title: "Next.js 14 完全指南",
+    date: "2024-01-15",
+    excerpt: "深入探索 Next.js 14 的新特性和最佳实践。",
     content: `# Next.js 14 完全指南
 
 ## App Router
@@ -51,12 +52,13 @@ Next.js 14 引入了全新的 App Router，带来许多强大的功能。
 
 Next.js 14 是一个强大的全栈框架，值得深入学习。
 `,
+    tags: "Next.js,Tutorial",
   },
   {
-    slug: 'tailwind-tips',
-    title: 'Tailwind CSS 实用技巧',
-    date: '2024-02-01',
-    excerpt: '分享一些 Tailwind CSS 的使用技巧和最佳实践。',
+    slug: "tailwind-tips",
+    title: "Tailwind CSS 实用技巧",
+    date: "2024-02-01",
+    excerpt: "分享一些 Tailwind CSS 的使用技巧和最佳实践。",
     content: `# Tailwind CSS 实用技巧
 
 ## 1. 使用 @apply 复用样式
@@ -79,11 +81,14 @@ Next.js 14 是一个强大的全栈框架，值得深入学习。
 
 Happy coding! 🚀
 `,
+    tags: "Tailwind CSS,CSS",
   },
 ];
 
 export function getAllPosts(): Post[] {
-  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return posts.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
 }
 
 export function getPostBySlug(slug: string): Post | undefined {
