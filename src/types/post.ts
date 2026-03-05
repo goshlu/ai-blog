@@ -7,5 +7,5 @@ export interface Post {
   date: string;
   excerpt: string;
   content: string;
-  tags?: string[];
+  tags: string; // 逗号分隔的标签
 }
