@@ -1,124 +1,209 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { generateSummaryAction } from './actions';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BotIcon, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
-const initialState = {
-    summary: null,
-    title: null,
-    error: null,
-};
-
-function SubmitButton() {
-    const { pending } = useFormStatus();
-
-    return (
-        <Button type="submit" disabled={pending} className="w-full">
-            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {pending ? '正在生成摘要...' : '生成摘要'}
-        </Button>
-    );
+interface Post {
+  id?: string;
+  slug: string;
+  title: string;
+  date: string;
+  excerpt: string;
+  content: string;
 }
 
-export default function AdminSummaryPage() {
-    const [state, formAction] = useFormState(generateSummaryAction, initialState);
+interface Note {
+  id: string;
+  title: string;
+  date: string;
+}
 
+export default function AdminPage() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 获取文章列表
+    fetch('/api/posts')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setPosts(data.posts);
+        }
+      });
+
+    // 获取手记列表
+    fetch('/api/notes')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setNotes(data.notes);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
     return (
-        <div className="max-w-6xl mx-auto p-6 md:p-10">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
-                    <BotIcon className="w-8 h-8 text-primary" />
-                    管理员文章摘要控制台
-                </h1>
-                <p className="text-muted-foreground">
-                    输入文章标题和内容，使用 Next.js Server Actions 后端逻辑一键智能生成摘要。
-                </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                    <form action={formAction} className="space-y-6">
-                        <div className="space-y-2">
-                            <label htmlFor="title" className="text-sm font-medium leading-none">
-                                文章标题 (可选)
-                            </label>
-                            <input
-                                id="title"
-                                name="title"
-                                type="text"
-                                placeholder="例如：Next.js 14 完全指南"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="content" className="text-sm font-medium leading-none">
-                                文章正文内容
-                            </label>
-                            <textarea
-                                id="content"
-                                name="content"
-                                rows={16}
-                                required
-                                placeholder="在此粘贴您的 Markdown 或富文本内容..."
-                                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[80px]"
-                            />
-                        </div>
-
-                        <SubmitButton />
-                    </form>
-                </div>
-
-                <div className="flex flex-col h-full">
-                    <Card className="flex-1 shadow-sm">
-                        <CardHeader className="bg-muted/50 border-b">
-                            <CardTitle className="flex items-center gap-2">
-                                智能生成结果
-                            </CardTitle>
-                            <CardDescription>
-                                通过 Server Action 处理大模型调用，保护密钥并缩减前端体积。
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            {state?.error && (
-                                <div className="p-4 rounded-md bg-destructive/15 text-destructive font-medium border border-destructive/20 text-sm">
-                                    错误：{state.error}
-                                </div>
-                            )}
-
-                            {state?.summary && !state?.error && (
-                                <div className="space-y-4">
-                                    {state.title && (
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-muted-foreground mb-1">文章：</h3>
-                                            <p className="font-medium text-lg border-l-4 border-primary pl-3">
-                                                {state.title}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">摘要：</h3>
-                                        <div className="prose prose-sm dark:prose-invert bg-primary/5 p-4 rounded-lg leading-relaxed text-foreground">
-                                            <p className="m-0">{state.summary}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {!state?.summary && !state?.error && (
-                                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-60">
-                                    <BotIcon className="w-12 h-12 mb-4 text-muted-foreground" />
-                                    <p>等待生成摘要...</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+      <div className="max-w-5xl mx-auto py-10 px-4">
+        <div className="animate-pulse space-y-8">
+          <div className="h-8 bg-zinc-200 dark:bg-zinc-800 rounded w-1/4" />
+          <div className="grid grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
+            ))}
+          </div>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto py-10 px-4">
+      <header className="mb-12">
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
+          管理中心
+        </h1>
+        <p className="text-zinc-500 dark:text-zinc-400">
+          管理博客内容和设置
+        </p>
+      </header>
+
+      {/* 快捷操作 */}
+      <section className="mb-12">
+        <h2 className="text-sm font-medium text-zinc-400 dark:text-zinc-500 mb-4">
+          快捷操作
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link
+            href="/admin/posts/new"
+            className="group p-4 rounded-2xl bg-gradient-to-br from-pink-50 to-pink-100/50 dark:from-pink-900/20 dark:to-pink-800/10 border border-pink-100 dark:border-pink-800/30 hover:shadow-lg hover:shadow-pink-500/10 transition-all"
+          >
+            <div className="text-2xl mb-2">📝</div>
+            <div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              新建文章
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/posts"
+            className="group p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 border border-purple-100 dark:border-purple-800/30 hover:shadow-lg hover:shadow-purple-500/10 transition-all"
+          >
+            <div className="text-2xl mb-2">📚</div>
+            <div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              文章管理
+            </div>
+          </Link>
+
+          <Link
+            href="/admin#ai"
+            className="group p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-100 dark:border-blue-800/30 hover:shadow-lg hover:shadow-blue-500/10 transition-all"
+          >
+            <div className="text-2xl mb-2">🤖</div>
+            <div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              AI 摘要
+            </div>
+          </Link>
+
+          <Link
+            href="/admin#stats"
+            className="group p-4 rounded-2xl bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-800/10 border border-green-100 dark:border-green-800/30 hover:shadow-lg hover:shadow-green-500/10 transition-all"
+          >
+            <div className="text-2xl mb-2">📊</div>
+            <div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              数据统计
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* 统计信息 */}
+      <section id="stats" className="mb-12">
+        <h2 className="text-sm font-medium text-zinc-400 dark:text-zinc-500 mb-4">
+          内容统计
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800">
+            <div className="text-3xl font-bold gradient-text">
+              {posts.length}
+            </div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+              文章总数
+            </div>
+          </div>
+          <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800">
+            <div className="text-3xl font-bold gradient-text">
+              {notes.length}
+            </div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+              手记总数
+            </div>
+          </div>
+          <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800">
+            <div className="text-3xl font-bold gradient-text">
+              {(posts.reduce((acc, p) => acc + p.content.length, 0) / 1000).toFixed(1)}k
+            </div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+              总字数
+            </div>
+          </div>
+          <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800">
+            <div className="text-3xl font-bold gradient-text">
+              {new Date().getFullYear() - 2024 + 1}
+            </div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+              运行年份
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 最近文章 */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium text-zinc-400 dark:text-zinc-500">
+            最近文章
+          </h2>
+          <Link
+            href="/admin/posts"
+            className="text-xs text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+          >
+            查看全部 →
+          </Link>
+        </div>
+        <div className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            {posts.slice(0, 5).map((post) => {
+              const identifier = post.id ?? post.slug;
+              return (
+                <Link
+                  key={identifier}
+                  href={`/admin/posts/edit/${identifier}`}
+                  className="flex items-center justify-between p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
+                >
+                  <div>
+                    <div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                      {post.title}
+                    </div>
+                    <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5 line-clamp-1">
+                      {post.excerpt || '暂无摘要'}
+                    </div>
+                  </div>
+                  <div className="text-xs text-zinc-400 dark:text-zinc-500">
+                    {post.date}
+                  </div>
+                </Link>
+              );
+            })}
+            {posts.length === 0 && (
+              <div className="p-8 text-center text-zinc-400 dark:text-zinc-500">
+                暂无文章，点击「新建文章」开始创作
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
