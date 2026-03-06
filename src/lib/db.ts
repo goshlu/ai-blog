@@ -7,13 +7,14 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const tursoUrl = process.env.TURSO_DATABASE_URL;
+  const tursoToken = process.env.TURSO_AUTH_TOKEN;
   const databaseUrl = process.env.DATABASE_URL || "file:./prisma/dev.db";
 
-  // 优先使用 Turso（生产环境）
-  if (tursoUrl && tursoUrl.startsWith("libsql://")) {
+  // 优先使用 Turso（生产环境）- 必须同时配置 URL 和 Token
+  if (tursoUrl && tursoToken && tursoUrl.startsWith("libsql://")) {
     const adapter = new PrismaLibSql({
       url: tursoUrl,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      authToken: tursoToken,
     });
 
     return new PrismaClient({ adapter });

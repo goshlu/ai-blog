@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { requireAdminApiSession } from "@/lib/require-admin-api";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { checkAiUsageLimit, estimateTokens } from "@/lib/ai-usage-tracker";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,35 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const prompt = `你是一名资深中文技术博主，请根据下方信息写一篇完整的中文博文，使用 Markdown 格式输出。
+    // AI 使用限制检查
+    const promptText = `${title} ${excerpt || ""}`;
+    const estimatedInputTokens = estimateTokens(promptText) + 2000; // 加上系统提示和输出预估
+    const usageCheck = checkAiUsageLimit(
+      "global:generate-post",
+      estimatedInputTokens,
+      {
+        maxRequests: 50, // 每小时最多 50 次
+        maxTokens: 200000, // 每小时最多 20 万 tokens
+        maxCost: 2.0, // 每小时最多 $2
+      },
+    );
+
+    if (!usageCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: usageCheck.error || "AI 使用已达到限制，请稍后再试",
+        }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "X-RateLimit-Remaining": String(usageCheck.remaining || 0),
+          },
+        },
+      );
+    }
+
+    const prompt = `你是一名资深中文技术博主，请根据下方信息写一篇完整的中文博文，使用 Markdown 格式输出.
 
 要求：
 1. 语言自然、口语化但专业，适合个人博客

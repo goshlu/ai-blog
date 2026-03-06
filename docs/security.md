@@ -74,6 +74,50 @@
 - 自动清理过期记录
 - 返回 `429 Too Many Requests` 和 `Retry-After` 头
 
+## AI API 使用限制
+
+为防止 AI API 成本失控，实现了多层限制机制：
+
+### 限制策略
+
+| API 端点             | 每小时请求数 | 每小时 Tokens | 每小时成本 |
+| -------------------- | ------------ | ------------- | ---------- |
+| `/api/generate-post` | 50 次        | 200,000       | $2.00      |
+| `/api/summary`       | 100 次       | 300,000       | $3.00      |
+| `/api/translate`     | 50 次        | 500,000       | $5.00      |
+
+### 实现细节
+
+- **Token 估算** - 根据输入文本长度估算 token 使用量
+- **成本计算** - 基于 DeepSeek 定价（$0.14/1M input, $0.28/1M output）
+- **三重限制** - 同时检查请求次数、token 数量和成本
+- **全局限制** - 所有用户共享限制，防止整体成本失控
+- **自动重置** - 每小时自动重置计数器
+
+### 超限响应
+
+当达到限制时，API 返回：
+
+```json
+{
+  "error": "已达到请求次数限制（50 次/小时）",
+  "status": 429
+}
+```
+
+### 自定义限制
+
+可以在代码中调整限制参数：
+
+```typescript
+checkAiUsageLimit("global:summary", estimatedTokens, {
+  maxRequests: 100,
+  maxTokens: 300000,
+  maxCost: 3.0,
+  windowMs: 60 * 60 * 1000, // 1 小时
+});
+```
+
 ## 环境变量安全
 
 ### 必需的安全配置
@@ -125,10 +169,12 @@ Session cookie 配置：
 - ✅ Session token 验证
 - ✅ 时序攻击防护
 - ✅ API 频率限制
+- ✅ AI API 使用限制（防止成本失控）
 - ✅ CSRF 防护（SameSite cookie）
 - ✅ XSS 防护（httpOnly cookie）
 - ✅ 输入验证和清理
 - ✅ 错误信息不泄露敏感信息
+- ✅ 数据库连接配置验证（Turso 需要同时配置 URL 和 Token）
 
 ### 建议增强（可选）
 

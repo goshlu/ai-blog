@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { requireAdminApiSession } from "@/lib/require-admin-api";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { checkAiUsageLimit, estimateTokens } from "@/lib/ai-usage-tracker";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,33 @@ export async function POST(request: NextRequest) {
 
     if (!content) {
       return new Response("Content is required", { status: 400 });
+    }
+
+    // AI 使用限制检查
+    const estimatedInputTokens = estimateTokens(content) + 500; // 加上系统提示
+    const usageCheck = checkAiUsageLimit(
+      "global:summary",
+      estimatedInputTokens,
+      {
+        maxRequests: 100, // 每小时最多 100 次
+        maxTokens: 300000, // 每小时最多 30 万 tokens
+        maxCost: 3.0, // 每小时最多 $3
+      },
+    );
+
+    if (!usageCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: usageCheck.error || "AI 使用已达到限制，请稍后再试",
+        }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "X-RateLimit-Remaining": String(usageCheck.remaining || 0),
+          },
+        },
+      );
     }
 
     const prompt = `请为以下文章生成一段 50-100 字的中文摘要。要求：
