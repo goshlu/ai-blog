@@ -12,6 +12,7 @@ import { TableOfContents } from '@/components/PostBodyWithToc';
 import { Comments } from '@/components/Comments';
 import { PostBodyMdx } from '@/components/PostBodyMdx';
 import { SocialShare } from '@/components/SocialShare';
+import { RelatedPosts } from '@/components/RelatedPosts';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,10 +43,8 @@ interface Post {
   tags?: Tag[];
 }
 
-function buildShareSummary(post: Post) {
-  const base = post.excerpt?.trim() || post.content;
-
-  return base
+function stripMarkdown(content: string) {
+  return content
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/`([^`]+)`/g, '$1')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
@@ -53,37 +52,109 @@ function buildShareSummary(post: Post) {
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/[>*_~\-]+/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 140);
+    .trim();
+}
+
+function buildShareSummary(post: Post) {
+  const base = post.excerpt?.trim() || post.content;
+  return stripMarkdown(base).slice(0, 140);
+}
+
+function extractTerms(post: Post) {
+  const base = `${post.title} ${post.excerpt ?? ''} ${stripMarkdown(post.content).slice(0, 500)}`;
+  const englishTerms = base.toLowerCase().match(/[a-z]{3,}/g) ?? [];
+  const chineseTerms = base.match(/[\u4e00-\u9fa5]{2,8}/g) ?? [];
+
+  return new Set([...englishTerms, ...chineseTerms].slice(0, 80));
+}
+
+function scoreRelatedPost(currentPost: Post, candidate: Post) {
+  const currentTags = new Set((currentPost.tags ?? []).map((tag) => tag.name.toLowerCase()));
+  const candidateTags = new Set((candidate.tags ?? []).map((tag) => tag.name.toLowerCase()));
+  let score = 0;
+
+  currentTags.forEach((tag) => {
+    if (candidateTags.has(tag)) {
+      score += 6;
+    }
+  });
+
+  const currentTerms = extractTerms(currentPost);
+  const candidateTerms = extractTerms(candidate);
+  let overlap = 0;
+
+  currentTerms.forEach((term) => {
+    if (candidateTerms.has(term)) {
+      overlap += 1;
+    }
+  });
+
+  score += Math.min(overlap, 8);
+
+  if (candidate.title === currentPost.title) {
+    score = -1;
+  }
+
+  return score;
 }
 
 export default async function PostPage({ params }: Props) {
   const { slug: identifier } = await params;
 
-  let post = await prisma.post.findUnique({
+  let post = (await prisma.post.findUnique({
     where: { id: identifier },
     include: { tags: true },
-  }) as (Post | null);
+  })) as Post | null;
 
   if (!post) {
-    post = await prisma.post.findUnique({
+    post = (await prisma.post.findUnique({
       where: { slug: identifier },
       include: { tags: true },
-    }) as (Post | null);
+    })) as Post | null;
   }
 
   if (!post) {
     notFound();
   }
 
+  const [mdxSource, relatedCandidates] = await Promise.all([
+    serialize(post.content, {
+      mdxOptions: {
+        remarkPlugins: [remarkGfm],
+      },
+    }),
+    prisma.post.findMany({
+      where: {
+        id: {
+          not: post.id,
+        },
+      },
+      include: {
+        tags: true,
+      },
+      take: 24,
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    }) as Promise<Post[]>,
+  ]);
+
   const readMinutes = calculateReadingTime(post.content);
   const shareSummary = buildShareSummary(post);
-
-  const mdxSource = await serialize(post.content, {
-    mdxOptions: {
-      remarkPlugins: [remarkGfm],
-    },
-  });
+  const relatedPosts = relatedCandidates
+    .map((candidate) => ({
+      ...candidate,
+      score: scoreRelatedPost(post, candidate),
+    }))
+    .filter((candidate) => candidate.score >= 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    })
+    .slice(0, 3)
+    .map(({ score: _score, ...candidate }) => candidate);
 
   return (
     <div className="mt-6 md:mt-10">
@@ -178,6 +249,7 @@ export default async function PostPage({ params }: Props) {
         </div>
       </div>
 
+      <RelatedPosts posts={relatedPosts} />
       <Comments slug={post.slug} />
     </div>
   );
