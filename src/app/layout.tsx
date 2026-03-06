@@ -27,6 +27,14 @@ export const metadata: Metadata = {
   keywords: ["Next.js", "React", "TypeScript", "Full Stack", "技术博客"],
   authors: [{ name: "YSKM" }],
   creator: "YSKM",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://ai-blog-five-sigma.vercel.app",
+  ),
+  alternates: {
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
+  },
   openGraph: {
     type: "website",
     locale: "zh-CN",
