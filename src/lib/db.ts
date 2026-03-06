@@ -7,9 +7,10 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const tursoUrl = process.env.TURSO_DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL || "file:./prisma/dev.db";
 
-  // Prefer Turso only when explicitly configured; otherwise fall back to local SQLite.
-  if (tursoUrl) {
+  // 优先使用 Turso（生产环境）
+  if (tursoUrl && tursoUrl.startsWith("libsql://")) {
     const adapter = new PrismaLibSql({
       url: tursoUrl,
       authToken: process.env.TURSO_AUTH_TOKEN,
@@ -18,7 +19,13 @@ function createPrismaClient() {
     return new PrismaClient({ adapter });
   }
 
-  return new PrismaClient();
+  // 回退到本地 SQLite（开发环境）
+  // Prisma 7.x 要求所有连接都使用 adapter
+  const adapter = new PrismaLibSql({
+    url: databaseUrl,
+  });
+
+  return new PrismaClient({ adapter });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

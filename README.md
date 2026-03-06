@@ -147,6 +147,14 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see your blog.
 
+### Verify Setup
+
+验证数据库配置是否正确：
+
+```bash
+npm run db:verify
+```
+
 ## Testing
 
 项目使用 Vitest 作为测试框架。
@@ -191,6 +199,8 @@ npm run test:ui
 - 推荐使用 Turso 云数据库
 - Turso 提供免费套餐，支持全球边缘部署
 - 配置 `TURSO_DATABASE_URL` 和 `TURSO_AUTH_TOKEN` 后自动切换
+
+**详细配置说明：** 查看 [数据库配置文档](./docs/database-setup.md)
 
 ## Project Structure
 
