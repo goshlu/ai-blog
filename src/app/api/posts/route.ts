@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import prisma from '@/lib/db';
 import { notifySubscribersOfNewPost } from '@/lib/subscription-notify';
+import { requireAdminApiSession } from '@/lib/require-admin-api';
 
 export async function GET() {
   try {
@@ -28,6 +29,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const unauthorized = requireAdminApiSession(request);
+    if (unauthorized) {
+      return unauthorized;
+    }
+
     const body = await request.json();
     const { title, slug, excerpt, content, date, tags } = body;
 
@@ -98,6 +104,11 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const unauthorized = requireAdminApiSession(request);
+    if (unauthorized) {
+      return unauthorized;
+    }
+
     const body = await request.json();
     const { slug, title, excerpt, content, tags } = body;
 
@@ -148,6 +159,11 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const unauthorized = requireAdminApiSession(request);
+    if (unauthorized) {
+      return unauthorized;
+    }
+
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get('slug');
 
