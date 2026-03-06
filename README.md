@@ -22,13 +22,70 @@ An AI-powered blog built with Next.js 15, featuring AI-generated content, MDX su
 - **AI**: OpenAI GPT
 - **Content**: MDX with next-mdx-remote
 
+## Environment Variables
+
+项目需要以下环境变量。创建 `.env.local` 文件并配置：
+
+### 必需变量
+
+| 变量名           | 描述                                              | 示例                   | 必需 |
+| ---------------- | ------------------------------------------------- | ---------------------- | ---- |
+| `OPENAI_API_KEY` | OpenAI API 密钥，用于 AI 内容生成、摘要和翻译功能 | `sk-...`               | 是   |
+| `ADMIN_PASSWORD` | 管理员登录密码                                    | `your-secure-password` | 是   |
+
+### 数据库配置（二选一）
+
+**选项 1: 本地 SQLite（开发环境）**
+
+| 变量名         | 描述                   | 示例                   | 必需     |
+| -------------- | ---------------------- | ---------------------- | -------- |
+| `DATABASE_URL` | 本地 SQLite 数据库路径 | `file:./prisma/dev.db` | 开发环境 |
+
+**选项 2: Turso 云数据库（生产环境推荐）**
+
+| 变量名               | 描述                 | 示例                        | 必需     |
+| -------------------- | -------------------- | --------------------------- | -------- |
+| `TURSO_DATABASE_URL` | Turso 数据库连接 URL | `libsql://your-db.turso.io` | 生产环境 |
+| `TURSO_AUTH_TOKEN`   | Turso 认证令牌       | `eyJhbGc...`                | 生产环境 |
+
+### 可选变量
+
+| 变量名                     | 描述                                       | 示例                              | 默认值                                  |
+| -------------------------- | ------------------------------------------ | --------------------------------- | --------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`     | 网站公开 URL，用于 RSS、sitemap 和社交分享 | `https://yourblog.com`            | `https://ai-blog-five-sigma.vercel.app` |
+| `ADMIN_SESSION_SECRET`     | 管理员会话加密密钥                         | `random-secret-string`            | 使用 `ADMIN_PASSWORD`                   |
+| `SUBSCRIPTION_WEBHOOK_URL` | 订阅通知 Webhook URL（如使用邮件通知功能） | `https://your-webhook.com/notify` | -                                       |
+
+### 示例 .env.local 文件
+
+```env
+# OpenAI API（必需）
+OPENAI_API_KEY=sk-your-openai-api-key
+
+# 管理员密码（必需）
+ADMIN_PASSWORD=your-secure-password
+
+# 本地开发数据库（开发环境）
+DATABASE_URL=file:./prisma/dev.db
+
+# 或使用 Turso 云数据库（生产环境）
+# TURSO_DATABASE_URL=libsql://your-db.turso.io
+# TURSO_AUTH_TOKEN=your-turso-auth-token
+
+# 网站 URL（可选）
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# 订阅通知 Webhook（可选）
+# SUBSCRIPTION_WEBHOOK_URL=https://your-webhook.com/notify
+```
+
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- Turso account (for database)
 - OpenAI API key (for AI features)
+- Turso account (optional, for production database)
 
 ### Installation
 
@@ -45,40 +102,62 @@ cd blog-ai
 npm install
 ```
 
-3. Set up environment variables:
+3. Set up environment variables (see Environment Variables section above):
 
 ```bash
-cp .env.example .env.local
+# 复制并编辑环境变量文件
+cp .env .env.local
 ```
 
-4. Configure your `.env.local`:
-
-```env
-# Turso Database
-TURSO_DATABASE_URL="libsql://your-db.turso.io"
-TURSO_AUTH_TOKEN="your-auth-token"
-
-# OpenAI
-OPENAI_API_KEY="sk-your-openai-key"
-
-# NextAuth (optional)
-NEXTAUTH_SECRET="your-secret"
-NEXTAUTH_URL="http://localhost:3000"
-```
-
-5. Push schema to database:
+4. Generate Prisma Client:
 
 ```bash
+npx prisma generate
+```
+
+5. Initialize database:
+
+```bash
+# 本地开发环境（使用 SQLite）
+npx prisma generate
+npx prisma db push
+
+# 或运行迁移
+npx prisma migrate dev
+
+# 生产环境（使用 Turso）
+# 确保已配置 TURSO_DATABASE_URL 和 TURSO_AUTH_TOKEN
+npx prisma generate
 npx prisma db push
 ```
 
-6. Run the development server:
+6. (可选) 运行种子数据：
+
+```bash
+npx tsx prisma/seed.ts
+```
+
+7. Run the development server:
 
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see your blog.
+
+### Database Setup Notes
+
+**本地开发：**
+
+- 默认使用 SQLite 数据库（`file:./prisma/dev.db`）
+- 无需额外配置，开箱即用
+- 数据存储在 `prisma/dev.db` 文件中
+
+**生产部署：**
+
+- 推荐使用 Turso 云数据库
+- Turso 提供免费套餐，支持全球边缘部署
+- 配置 `TURSO_DATABASE_URL` 和 `TURSO_AUTH_TOKEN` 后自动切换
 
 ## Project Structure
 
@@ -101,11 +180,18 @@ src/
 
 ## Environment Variables
 
-| Variable             | Description                    | Required |
-| -------------------- | ------------------------------ | -------- |
-| `TURSO_DATABASE_URL` | Turso database URL             | Yes      |
-| `TURSO_AUTH_TOKEN`   | Turso authentication token     | Yes      |
-| `OPENAI_API_KEY`     | OpenAI API key for AI features | Yes      |
+| Variable                   | Description                   | Required |
+| -------------------------- | ----------------------------- | -------- |
+| `OPENAI_API_KEY`           | OpenAI API 密钥，用于 AI 功能 | 是       |
+| `ADMIN_PASSWORD`           | 管理员登录密码                | 是       |
+| `DATABASE_URL`             | 本地 SQLite 数据库路径        | 开发环境 |
+| `TURSO_DATABASE_URL`       | Turso 数据库 URL              | 生产环境 |
+| `TURSO_AUTH_TOKEN`         | Turso 认证令牌                | 生产环境 |
+| `NEXT_PUBLIC_SITE_URL`     | 网站公开 URL                  | 否       |
+| `ADMIN_SESSION_SECRET`     | 会话加密密钥                  | 否       |
+| `SUBSCRIPTION_WEBHOOK_URL` | 订阅通知 Webhook              | 否       |
+
+详细配置说明请参考上方的"Environment Variables"章节。
 
 ## Deployment
 
@@ -118,11 +204,23 @@ src/
 
 ### Environment Variables on Vercel
 
-Add these in Vercel Project Settings → Environment Variables:
+在 Vercel 项目设置 → Environment Variables 中添加：
 
-- `TURSO_DATABASE_URL`: `libsql://ai-blog-db-goshlu.aws-ap-northeast-1.turso.io`
-- `TURSO_AUTH_TOKEN`: (your token from Turso dashboard)
-- `OPENAI_API_KEY`: (your OpenAI API key)
+**必需变量：**
+
+- `OPENAI_API_KEY`: 你的 OpenAI API 密钥
+- `ADMIN_PASSWORD`: 管理员密码
+- `TURSO_DATABASE_URL`: `libsql://your-db.turso.io`
+- `TURSO_AUTH_TOKEN`: 从 Turso 控制台获取
+
+**可选变量：**
+
+- `NEXT_PUBLIC_SITE_URL`: 你的域名（如 `https://yourblog.com`）
+- `SUBSCRIPTION_WEBHOOK_URL`: 订阅通知 Webhook URL（如需邮件通知功能）
+
+## Admin Access
+
+访问 `/login` 使用 `ADMIN_PASSWORD` 登录管理后台。管理后台路径：`/admin`
 
 ## License
 
