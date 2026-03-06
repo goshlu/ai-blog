@@ -1,11 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
-import path from "path";
-
-const dbPath = path.join(process.cwd(), "dev.db");
 
 const adapter = new PrismaLibSql({
-  url: `file:${dbPath}`,
+  url: process.env.TURSO_DATABASE_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
 const globalForPrisma = globalThis as unknown as {

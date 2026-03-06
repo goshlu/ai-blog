@@ -4,17 +4,29 @@ import prisma from '@/lib/db';
 
 // GET - 获取所有文章
 export async function GET() {
-  const posts = await prisma.post.findMany({
-    orderBy: { date: 'desc' },
-  });
-  return NextResponse.json({ success: true, posts });
+  try {
+    const posts = await prisma.post.findMany({
+      include: {
+        tags: true,
+      },
+      orderBy: { date: 'desc' },
+    });
+    return NextResponse.json({ success: true, posts });
+  } catch (error) {
+    console.error('[API/POSTS] GET Error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: '获取文章失败',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
+  }
 }
 
 // POST - 创建新文章
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, slug, excerpt, content, date } = body;
+    const { title, slug, excerpt, content, date, tags } = body;
 
     if (!title || !slug || !content) {
       return NextResponse.json(
@@ -39,6 +51,15 @@ export async function POST(request: NextRequest) {
         excerpt: excerpt || '',
         content,
         date: date || new Date().toISOString().split('T')[0],
+        tags: {
+          connectOrCreate: (tags || []).map((tagName: string) => ({
+            where: { name: tagName },
+            create: { name: tagName },
+          })),
+        },
+      },
+      include: {
+        tags: true,
       },
     });
 
@@ -62,9 +83,13 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { slug, title, excerpt, content } = body;
+    const { slug, title, excerpt, content, tags } = body;
 
-    const post = await prisma.post.findUnique({ where: { slug } });
+    const post = await prisma.post.findUnique({ 
+      where: { slug },
+      include: { tags: true } 
+    });
+    
     if (!post) {
       return NextResponse.json(
         { success: false, error: '文章不存在' },
@@ -78,6 +103,16 @@ export async function PUT(request: NextRequest) {
         title: title || post.title,
         excerpt: excerpt ?? post.excerpt,
         content: content || post.content,
+        tags: {
+          set: [], // 先清空现有关联
+          connectOrCreate: (tags || []).map((tagName: string) => ({
+            where: { name: tagName },
+            create: { name: tagName },
+          })),
+        },
+      },
+      include: {
+        tags: true,
       },
     });
 

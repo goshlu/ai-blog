@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { X } from "lucide-react";
+
+interface Tag {
+  name: string;
+}
 
 interface Post {
   slug: string;
@@ -10,6 +15,7 @@ interface Post {
   date: string;
   excerpt: string;
   content: string;
+  tags?: Tag[];
 }
 
 export function PostEditor({ post }: { post?: Post }) {
@@ -27,13 +33,36 @@ export function PostEditor({ post }: { post?: Post }) {
     slug: post?.slug || "",
     excerpt: post?.excerpt || "",
     content: post?.content || "",
+    tags: post?.tags?.map((t) => t.name) || ([] as string[]),
   });
+  const [tagInput, setTagInput] = useState("");
 
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
       .replace(/[^\w\u4e00-\u9fa5]+/g, "-")
       .replace(/^-+|-+$/g, "");
+  };
+
+  const handleAddTag = (e?: React.KeyboardEvent | React.FocusEvent) => {
+    if (e && "key" in e && e.key !== "Enter") return;
+    if (e) e.preventDefault();
+
+    const tag = tagInput.trim();
+    if (tag && !formData.tags.includes(tag)) {
+      setFormData((prev) => ({
+        ...prev,
+        tags: [...prev.tags, tag],
+      }));
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((t: string) => t !== tagToRemove),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,10 +79,12 @@ export function PostEditor({ post }: { post?: Post }) {
             title: formData.title,
             excerpt: formData.excerpt,
             content: formData.content,
+            tags: formData.tags.map((tag: string) => ({ name: tag })),
           }
         : {
             ...formData,
             date: new Date().toISOString().split("T")[0],
+            tags: formData.tags.map((tag: string) => ({ name: tag })),
           };
 
       const response = await fetch("/api/posts", {
@@ -247,6 +278,38 @@ export function PostEditor({ post }: { post?: Post }) {
           }
           className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
           placeholder="简短描述文章内容"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          文章标签
+        </label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {formData.tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 text-xs border border-pink-100 dark:border-pink-800"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => removeTag(tag)}
+                className="hover:text-pink-800 dark:hover:text-pink-200"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          onKeyDown={handleAddTag}
+          onBlur={() => handleAddTag()}
+          className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+          placeholder="输入标签并按回车添加"
         />
       </div>
 

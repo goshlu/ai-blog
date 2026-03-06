@@ -1,15 +1,20 @@
 import Link from 'next/link';
 import { CalendarIcon } from 'lucide-react';
 
+interface Tag {
+  name: string;
+}
+
 interface BlogCardProps {
     title: string;
     excerpt: string;
     date: string;
     slug: string;
     imageUrl?: string;
+    tags?: Tag[];
 }
 
-export function BlogCard({ title, excerpt, date, slug, imageUrl }: BlogCardProps) {
+export function BlogCard({ title, excerpt, date, slug, imageUrl, tags }: BlogCardProps) {
     return (
         <Link href={`/posts/${slug}`} className="group block outline-none">
             <article className="relative flex flex-col md:flex-row w-full bg-white dark:bg-zinc-900/50 rounded-[2rem] border border-zinc-100/80 dark:border-zinc-800/50 p-2 md:p-3 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(236,72,153,0.15)] transition-all duration-500 ease-out hover:-translate-y-2 overflow-hidden">
@@ -31,11 +36,19 @@ export function BlogCard({ title, excerpt, date, slug, imageUrl }: BlogCardProps
                 {/* 右侧：极简排版文本区 */}
                 <div className="flex flex-col flex-1 pt-4 pb-3 md:py-6 px-3 md:px-8 justify-center bg-transparent relative z-10">
 
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/60 dark:to-zinc-800/30 text-[13px] font-medium text-zinc-500 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-700/30">
+                    <div className="flex items-center gap-2 mb-3 overflow-x-auto no-scrollbar">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/60 dark:to-zinc-800/30 text-[13px] font-medium text-zinc-500 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-700/30 whitespace-nowrap shrink-0">
                             <CalendarIcon className="w-3.5 h-3.5" />
                             {date}
                         </span>
+                        {tags && tags.map((tag) => (
+                            <span 
+                                key={tag.name}
+                                className="inline-flex items-center px-3 py-1.5 rounded-full bg-pink-50 dark:bg-pink-900/20 text-[12px] font-medium text-pink-600 dark:text-pink-400 border border-pink-100 dark:border-pink-800/50 whitespace-nowrap shrink-0"
+                            >
+                                # {tag.name}
+                            </span>
+                        ))}
                     </div>
 
                     <h3 className="text-xl md:text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 mb-3 line-clamp-2 transition-colors duration-300 group-hover:text-pink-500 dark:group-hover:text-pink-400">

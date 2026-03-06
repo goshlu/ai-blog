@@ -26,15 +26,35 @@ export async function generateStaticParams() {
   return posts.map((post) => ({ slug: post.id }));
 }
 
+interface Tag {
+  id: string;
+  name: string;
+}
+
+interface Post {
+  id: string;
+  slug: string;
+  title: string;
+  date: string;
+  content: string;
+  tags?: Tag[];
+}
+
 export default async function PostPage({ params }: Props) {
   const { slug: identifier } = await params;
 
   // 1. 优先按 id 查询（新链接：/posts/:id）
-  let post = await prisma.post.findUnique({ where: { id: identifier } });
+  let post = await prisma.post.findUnique({ 
+    where: { id: identifier },
+    include: { tags: true }
+  }) as (Post | null);
 
   // 2. 如果按 id 没找到，再按 slug 查询，兼容旧链接（/posts/:slug）
   if (!post) {
-    post = await prisma.post.findUnique({ where: { slug: identifier } });
+    post = await prisma.post.findUnique({ 
+      where: { slug: identifier },
+      include: { tags: true }
+    }) as (Post | null);
   }
 
   if (!post) {
@@ -89,9 +109,22 @@ export default async function PostPage({ params }: Props) {
               <ViewCounter slug={post.slug} />
             </div>
 
-            <h1 className="text-2xl md:text-[2.4rem] leading-snug md:leading-tight font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50 text-center text-balance">
+            <h1 className="text-2xl md:text-[2.4rem] leading-snug md:leading-tight font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50 text-center text-balance mb-6">
               {post.title}
             </h1>
+
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="px-3 py-1 rounded-full bg-pink-50 dark:bg-pink-900/20 text-[12px] font-medium text-pink-600 dark:text-pink-400 border border-pink-100 dark:border-pink-800/50"
+                  >
+                    # {tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 智能摘要区域：模仿参考站的“关键洞察”卡片 */}

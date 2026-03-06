@@ -31,13 +31,14 @@ export function PostList({ posts }: PostListProps) {
   if (!mounted) {
     return (
       <div className="grid grid-cols-1 gap-8 md:gap-10">
-        {posts.map((post) => (
+          {posts.map((post) => (
           <BlogCard
             key={post.id ?? post.slug}
             slug={post.id ?? post.slug}
             title={post.title}
             excerpt={post.excerpt}
             date={post.date}
+            tags={(post as any).tags}
           />
         ))}
       </div>
@@ -60,6 +61,7 @@ export function PostList({ posts }: PostListProps) {
                 title={post.title}
                 excerpt={post.excerpt}
                 date={post.date}
+                tags={(post as any).tags}
               />
             );
           })}
