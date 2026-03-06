@@ -3,12 +3,12 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
-// Turso 远程数据库配置
-// Prisma 7.x 通过 LibSQL 适配器支持 Turso
+// 本地数据库配置
+// Prisma 7.x 通过 datasource.url 配置数据库连接
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: process.env.TURSO_DATABASE_URL!,
+    url: process.env.DATABASE_URL || "file:./prisma/dev.db",
   },
 });
