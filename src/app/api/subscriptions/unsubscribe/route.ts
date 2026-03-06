@@ -1,12 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { normalizeEmail } from '@/lib/utils';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function normalizeEmail(value: string) {
-  return value.trim().toLowerCase();
-}
 
 async function unsubscribeByEmail(emailInput: string) {
   const email = normalizeEmail(emailInput);

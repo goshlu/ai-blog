@@ -1,13 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { normalizeEmail } from '@/lib/utils';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME_LENGTH = 64;
-
-function normalizeEmail(value: string) {
-  return value.trim().toLowerCase();
-}
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,11 +1,8 @@
-'use client';
+﻿'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-
-function normalizeEmail(value: string) {
-  return value.trim().toLowerCase();
-}
+import { normalizeEmail } from '@/lib/utils';
 
 export default function SubscribePage() {
   const searchParams = useSearchParams();
