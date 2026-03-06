@@ -39,6 +39,7 @@ export function PostList({ posts }: PostListProps) {
             excerpt={post.excerpt}
             date={post.date}
             tags={(post as any).tags}
+            content={(post as any).content}
           />
         ))}
       </div>
@@ -62,6 +63,7 @@ export function PostList({ posts }: PostListProps) {
                 excerpt={post.excerpt}
                 date={post.date}
                 tags={(post as any).tags}
+                content={(post as any).content}
               />
             );
           })}

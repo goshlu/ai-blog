@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, ClockIcon } from 'lucide-react';
+import { calculateReadingTime, formatReadingTime } from '@/lib/reading-time';
 
 interface Tag {
   name: string;
@@ -12,9 +13,11 @@ interface BlogCardProps {
     slug: string;
     imageUrl?: string;
     tags?: Tag[];
+    content?: string;
 }
 
-export function BlogCard({ title, excerpt, date, slug, imageUrl, tags }: BlogCardProps) {
+export function BlogCard({ title, excerpt, date, slug, imageUrl, tags, content }: BlogCardProps) {
+    const readingTime = content ? calculateReadingTime(content) : 1;
     return (
         <Link href={`/posts/${slug}`} className="group block outline-none">
             <article className="relative flex flex-col md:flex-row w-full bg-white dark:bg-zinc-900/50 rounded-[2rem] border border-zinc-100/80 dark:border-zinc-800/50 p-2 md:p-3 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(236,72,153,0.15)] transition-all duration-500 ease-out hover:-translate-y-2 overflow-hidden">
@@ -40,6 +43,10 @@ export function BlogCard({ title, excerpt, date, slug, imageUrl, tags }: BlogCar
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/60 dark:to-zinc-800/30 text-[13px] font-medium text-zinc-500 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-700/30 whitespace-nowrap shrink-0">
                             <CalendarIcon className="w-3.5 h-3.5" />
                             {date}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/60 dark:to-zinc-800/30 text-[13px] font-medium text-zinc-500 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-700/30 whitespace-nowrap shrink-0">
+                            <ClockIcon className="w-3.5 h-3.5" />
+                            {formatReadingTime(readingTime)}
                         </span>
                         {tags && tags.map((tag) => (
                             <span 

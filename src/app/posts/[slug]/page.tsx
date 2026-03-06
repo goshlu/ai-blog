@@ -3,6 +3,7 @@ import Link from 'next/link';
 import remarkGfm from 'remark-gfm';
 import { serialize } from 'next-mdx-remote/serialize';
 import prisma from '@/lib/db';
+import { calculateReadingTime } from '@/lib/reading-time';
 import { Button } from '@/components/ui/button';
 import { TranslateButton } from '@/components/TranslateButton';
 import { SmartSummary } from '@/components/SmartSummary';
@@ -61,8 +62,7 @@ export default async function PostPage({ params }: Props) {
     notFound();
   }
 
-  const wordCount = post.content.split(/\s+/).filter(Boolean).length;
-  const readMinutes = Math.max(1, Math.round(wordCount / 220));
+  const readMinutes = calculateReadingTime(post.content);
 
   const mdxSource = await serialize(post.content, {
     mdxOptions: {
