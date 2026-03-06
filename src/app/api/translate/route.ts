@@ -1,7 +1,28 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminApiSession } from '@/lib/require-admin-api';
+import { checkRateLimit } from '@/lib/rate-limit';
+
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: Request) {
-  const { content } = await request.json();
+export async function POST(request: NextRequest) {
+  try {
+    // 频率限制
+    const limited = checkRateLimit(request, {
+      key: 'translate:post',
+      windowMs: 60_000,
+      max: 10,
+    });
+    if (limited) {
+      return limited;
+    }
+
+    // 管理员鉴权
+    const unauthorized = requireAdminApiSession(request);
+    if (unauthorized) {
+      return unauthorized;
+    }
+
+    const { content } = await request.json();
 
   if (!content) {
     return new Response('Content is required', { status: 400 });

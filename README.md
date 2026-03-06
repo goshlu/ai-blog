@@ -155,6 +155,12 @@ Open [http://localhost:3000](http://localhost:3000) to see your blog.
 npm run db:verify
 ```
 
+检查安全配置：
+
+```bash
+npm run security:check
+```
+
 ## Testing
 
 项目使用 Vitest 作为测试框架。
@@ -264,6 +270,8 @@ src/
 ## Admin Access
 
 访问 `/login` 使用 `ADMIN_PASSWORD` 登录管理后台。管理后台路径：`/admin`
+
+**安全说明：** 所有管理员路由和 API 都受到身份验证保护。详细信息请查看 [安全性文档](./docs/security.md)。
 
 ## Contributing
 
