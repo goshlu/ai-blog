@@ -17,7 +17,9 @@ function createMockRequest(ip?: string): NextRequest {
 describe("checkRateLimit", () => {
   beforeEach(() => {
     // 清理全局存储
-    const globalForRateLimit = globalThis as any;
+    const globalForRateLimit = globalThis as {
+      __rateLimitStore?: Map<string, unknown>;
+    };
     if (globalForRateLimit.__rateLimitStore) {
       globalForRateLimit.__rateLimitStore.clear();
     }
