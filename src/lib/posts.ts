@@ -1,6 +1,14 @@
-import { Post } from "@/types/post";
+// 用于静态种子数据的简化 Post 类型（不包含关系字段）
+export interface StaticPost {
+  slug: string;
+  title: string;
+  date: string;
+  excerpt: string;
+  content: string;
+  tags: string; // 逗号分隔的标签字符串
+}
 
-export const posts: Post[] = [
+export const posts: StaticPost[] = [
   {
     slug: "hello-world",
     title: "你好，世界",
@@ -85,12 +93,12 @@ Happy coding! 🚀
   },
 ];
 
-export function getAllPosts(): Post[] {
+export function getAllPosts(): StaticPost[] {
   return posts.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 }
 
-export function getPostBySlug(slug: string): Post | undefined {
+export function getPostBySlug(slug: string): StaticPost | undefined {
   return posts.find((post) => post.slug === slug);
 }
