@@ -2,6 +2,8 @@
 
 An AI-powered blog built with Next.js 15, featuring AI-generated content, MDX support, and Turso database.
 
+![Tests](https://github.com/yourusername/blog-ai/workflows/Tests/badge.svg)
+
 ## Features
 
 - 🤖 **AI Content Generation** - Generate blog post content using AI
@@ -145,6 +147,37 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see your blog.
 
+## Testing
+
+项目使用 Vitest 作为测试框架。
+
+### 运行测试
+
+```bash
+# 运行所有测试
+npm test
+
+# 监听模式（开发时使用）
+npm run test:watch
+
+# 生成测试覆盖率报告
+npm run test:coverage
+
+# 使用 UI 界面运行测试
+npm run test:ui
+```
+
+### 测试覆盖
+
+当前已为以下核心功能添加单元测试：
+
+- `src/lib/reading-time.ts` - 阅读时间计算
+- `src/lib/headings.ts` - 标题提取和 slug 生成
+- `src/lib/rate-limit.ts` - API 请求频率限制
+- `src/lib/posts.ts` - 文章数据管理
+
+测试文件位于 `src/lib/__tests__/` 目录。
+
 ### Database Setup Notes
 
 **本地开发：**
@@ -221,6 +254,31 @@ src/
 ## Admin Access
 
 访问 `/login` 使用 `ADMIN_PASSWORD` 登录管理后台。管理后台路径：`/admin`
+
+## Contributing
+
+欢迎贡献！在提交 PR 前，请确保：
+
+1. 所有测试通过：`npm test`
+2. 代码通过 lint 检查：`npm run lint`
+3. 为新功能添加相应的测试
+
+### 添加测试
+
+测试文件应放在 `src/lib/__tests__/` 目录下，文件名格式为 `*.test.ts`。
+
+示例：
+
+```typescript
+import { describe, it, expect } from "vitest";
+import { yourFunction } from "../your-module";
+
+describe("yourFunction", () => {
+  it("应该正确处理输入", () => {
+    expect(yourFunction("input")).toBe("expected");
+  });
+});
+```
 
 ## License
 
