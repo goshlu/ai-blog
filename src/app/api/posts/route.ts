@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import prisma from '@/lib/db';
 import { notifySubscribersOfNewPost } from '@/lib/subscription-notify';
 import { requireAdminApiSession } from '@/lib/require-admin-api';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET() {
   try {
@@ -29,6 +30,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = checkRateLimit(request, {
+      key: 'posts:post',
+      windowMs: 60_000,
+      max: 20,
+    });
+    if (limited) {
+      return limited;
+    }
+
     const unauthorized = requireAdminApiSession(request);
     if (unauthorized) {
       return unauthorized;
@@ -104,6 +114,15 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const limited = checkRateLimit(request, {
+      key: 'posts:put',
+      windowMs: 60_000,
+      max: 30,
+    });
+    if (limited) {
+      return limited;
+    }
+
     const unauthorized = requireAdminApiSession(request);
     if (unauthorized) {
       return unauthorized;
@@ -159,6 +178,15 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const limited = checkRateLimit(request, {
+      key: 'posts:delete',
+      windowMs: 60_000,
+      max: 20,
+    });
+    if (limited) {
+      return limited;
+    }
+
     const unauthorized = requireAdminApiSession(request);
     if (unauthorized) {
       return unauthorized;

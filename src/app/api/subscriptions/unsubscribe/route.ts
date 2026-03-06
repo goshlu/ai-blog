@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -42,6 +43,15 @@ async function unsubscribeByEmail(emailInput: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = checkRateLimit(request, {
+      key: 'subscriptions:unsubscribe:post',
+      windowMs: 60_000,
+      max: 8,
+    });
+    if (limited) {
+      return limited;
+    }
+
     const body = await request.json();
     return unsubscribeByEmail(String(body?.email || ''));
   } catch (error) {
@@ -55,6 +65,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const limited = checkRateLimit(request, {
+      key: 'subscriptions:unsubscribe:get',
+      windowMs: 60_000,
+      max: 12,
+    });
+    if (limited) {
+      return limited;
+    }
+
     const email = request.nextUrl.searchParams.get('email') || '';
     return unsubscribeByEmail(email);
   } catch (error) {

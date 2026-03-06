@@ -6,6 +6,7 @@ import {
   isAdminAuthConfigured,
   verifyAdminPassword,
 } from '@/lib/admin-auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 function sanitizeRedirectTarget(raw: string) {
   if (raw.startsWith('/admin')) {
@@ -16,6 +17,15 @@ function sanitizeRedirectTarget(raw: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = checkRateLimit(request, {
+      key: 'admin:login:post',
+      windowMs: 10 * 60_000,
+      max: 20,
+    });
+    if (limited) {
+      return limited;
+    }
+
     if (!isAdminAuthConfigured()) {
       return NextResponse.json(
         { success: false, error: '后台鉴权未配置：请设置 ADMIN_PASSWORD' },

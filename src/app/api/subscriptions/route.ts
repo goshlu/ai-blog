@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME_LENGTH = 64;
@@ -10,6 +11,15 @@ function normalizeEmail(value: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = checkRateLimit(request, {
+      key: 'subscriptions:post',
+      windowMs: 60_000,
+      max: 8,
+    });
+    if (limited) {
+      return limited;
+    }
+
     const body = await request.json();
     const email = normalizeEmail(String(body?.email || ''));
     const name = String(body?.name || '').trim().slice(0, MAX_NAME_LENGTH);
