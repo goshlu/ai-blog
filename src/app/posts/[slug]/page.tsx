@@ -13,6 +13,7 @@ import { Comments } from "@/components/Comments";
 import { PostBodyMdx } from "@/components/PostBodyMdx";
 import { SocialShare } from "@/components/SocialShare";
 import { RelatedPosts } from "@/components/RelatedPosts";
+import type { Post, Tag } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -20,27 +21,16 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+type PostWithTags = Post & {
+  tags: Tag[];
+};
+
 export async function generateStaticParams() {
   const posts = await prisma.post.findMany({
     select: { id: true, slug: true },
   });
 
   return posts.map((post) => ({ slug: post.slug || post.id }));
-}
-
-interface Tag {
-  id: string;
-  name: string;
-}
-
-interface Post {
-  id: string;
-  slug: string;
-  title: string;
-  date: string;
-  excerpt?: string | null;
-  content: string;
-  tags?: Tag[];
 }
 
 function stripMarkdown(content: string) {
@@ -55,12 +45,12 @@ function stripMarkdown(content: string) {
     .trim();
 }
 
-function buildShareSummary(post: Post) {
+function buildShareSummary(post: PostWithTags) {
   const base = post.excerpt?.trim() || post.content;
   return stripMarkdown(base).slice(0, 140);
 }
 
-function extractTerms(post: Post) {
+function extractTerms(post: PostWithTags) {
   const base = `${post.title} ${post.excerpt ?? ""} ${stripMarkdown(post.content).slice(0, 500)}`;
   const englishTerms = base.toLowerCase().match(/[a-z]{3,}/g) ?? [];
   const chineseTerms = base.match(/[\u4e00-\u9fa5]{2,8}/g) ?? [];
@@ -68,12 +58,12 @@ function extractTerms(post: Post) {
   return new Set([...englishTerms, ...chineseTerms].slice(0, 80));
 }
 
-function scoreRelatedPost(currentPost: Post, candidate: Post) {
+function scoreRelatedPost(currentPost: PostWithTags, candidate: PostWithTags) {
   const currentTags = new Set(
-    (currentPost.tags ?? []).map((tag) => tag.name.toLowerCase()),
+    currentPost.tags.map((tag) => tag.name.toLowerCase()),
   );
   const candidateTags = new Set(
-    (candidate.tags ?? []).map((tag) => tag.name.toLowerCase()),
+    candidate.tags.map((tag) => tag.name.toLowerCase()),
   );
   let score = 0;
 
@@ -105,17 +95,15 @@ function scoreRelatedPost(currentPost: Post, candidate: Post) {
 export default async function PostPage({ params }: Props) {
   const { slug: identifier } = await params;
 
-  let post = (await prisma.post.findUnique({
-    where: { id: identifier },
-    include: { tags: true },
-  })) as Post | null;
-
-  if (!post) {
-    post = (await prisma.post.findUnique({
+  const post =
+    (await prisma.post.findUnique({
+      where: { id: identifier },
+      include: { tags: true },
+    })) ||
+    (await prisma.post.findUnique({
       where: { slug: identifier },
       include: { tags: true },
-    })) as Post | null;
-  }
+    }));
 
   if (!post) {
     notFound();
@@ -140,15 +128,15 @@ export default async function PostPage({ params }: Props) {
       orderBy: {
         updatedAt: "desc",
       },
-    }) as Promise<Post[]>,
+    }),
   ]);
 
   const readMinutes = calculateReadingTime(post.content);
-  const shareSummary = buildShareSummary(post);
-  const relatedPosts = relatedCandidates
+  const shareSummary = buildShareSummary(post as PostWithTags);
+  const relatedPosts = (relatedCandidates as PostWithTags[])
     .map((candidate) => ({
       ...candidate,
-      score: scoreRelatedPost(post, candidate),
+      score: scoreRelatedPost(post as PostWithTags, candidate),
     }))
     .filter((candidate) => candidate.score >= 0)
     .sort((a, b) => {
@@ -158,7 +146,8 @@ export default async function PostPage({ params }: Props) {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     })
     .slice(0, 3)
-    .map(({ score: _score, ...candidate }) => candidate);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(({ score, ...candidate }) => candidate);
 
   return (
     <div className="mt-6 md:mt-10">
