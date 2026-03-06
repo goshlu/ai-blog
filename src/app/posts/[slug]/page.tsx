@@ -25,7 +25,7 @@ export async function generateStaticParams() {
     select: { id: true, slug: true },
   });
 
-  return posts.map((post) => ({ slug: post.id }));
+  return posts.map((post) => ({ slug: post.slug || post.id }));
 }
 
 interface Tag {
@@ -164,13 +164,13 @@ export default async function PostPage({ params }: Props) {
             variant="ghost"
             className="-ml-3 h-8 rounded-full border border-transparent px-3 text-[13px] text-zinc-600 hover:border-zinc-200 hover:bg-zinc-100/60 dark:text-zinc-400 dark:hover:border-zinc-800 dark:hover:bg-zinc-900/70"
           >
-            返回首页
+            杩斿洖棣栭〉
           </Button>
         </Link>
 
         <div className="hidden items-center gap-2 text-[12px] md:flex">
           <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-500 dark:bg-zinc-900/80 dark:text-zinc-400">
-            博客 / 文章详情
+            鍗氬 / 鏂囩珷璇︽儏
           </span>
         </div>
       </div>
@@ -182,13 +182,13 @@ export default async function PostPage({ params }: Props) {
           <div className="relative border-b border-zinc-100/80 px-5 pb-6 pt-7 dark:border-zinc-800/80 md:px-10 md:pt-9">
             <div className="mb-3 flex flex-wrap items-center justify-center gap-3 text-[12px] font-medium text-zinc-500">
               <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-300">
-                技术 / 博客
+                鎶€鏈?/ 鍗氬
               </span>
               <time className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-                发布于 {post.date}
+                鍙戝竷浜?{post.date}
               </time>
               <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-                约 {readMinutes} 分钟阅读
+                绾?{readMinutes} 鍒嗛挓闃呰
               </span>
               <ViewCounter slug={post.slug} />
             </div>
@@ -215,7 +215,7 @@ export default async function PostPage({ params }: Props) {
             <div className="mx-auto max-w-3xl">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1 text-[11px] font-medium text-zinc-50 shadow-sm dark:bg-zinc-50 dark:text-zinc-900">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                关键洞察
+                鍏抽敭娲炲療
               </div>
               <div className="rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-4 shadow-[0_10px_35px_rgba(15,23,42,0.12)] dark:border-zinc-800/90 dark:bg-[#05060a]/95 dark:shadow-[0_18px_60px_rgba(0,0,0,0.75)] md:px-6 md:py-5">
                 <SmartSummary content={post.content} />
@@ -229,7 +229,7 @@ export default async function PostPage({ params }: Props) {
 
           <footer className="relative flex flex-col gap-4 border-t border-zinc-100/80 px-5 py-5 dark:border-zinc-800/80 md:px-10 lg:flex-row lg:items-center lg:justify-between">
             <div className="text-[12px] text-zinc-400">
-              © {new Date().getFullYear()} 我的博客 / 文章阅读完毕
+              漏 {new Date().getFullYear()} 鎴戠殑鍗氬 / 鏂囩珷闃呰瀹屾瘯
             </div>
             <div className="flex flex-col items-stretch gap-3 md:items-end">
               <SocialShare
@@ -254,3 +254,4 @@ export default async function PostPage({ params }: Props) {
     </div>
   );
 }
+
