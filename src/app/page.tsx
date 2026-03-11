@@ -39,7 +39,7 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
-      <header className="mb-20 mt-12 relative md:mb-28 md:mt-20">
+      <header className="relative mb-20 mt-12 md:mb-28 md:mt-20">
         <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-gradient-to-br from-pink-200/50 to-purple-200/50 blur-3xl dark:from-pink-900/20 dark:to-purple-900/20" />
         <div className="absolute right-0 top-20 h-32 w-32 rounded-full bg-gradient-to-br from-blue-200/50 to-cyan-200/50 blur-3xl dark:from-blue-900/20 dark:to-cyan-900/20" />
 
@@ -52,12 +52,32 @@ export default function Home() {
           A Full Stack Developer
         </p>
 
-        <div className="relative mt-6 flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-          </span>
-          <span>Available for work</span>
+        <div className="relative mt-6 flex flex-wrap items-center gap-3 text-sm text-zinc-400 dark:text-zinc-500">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+            </span>
+            <span>Available for work</span>
+          </div>
+          {siteConfig.email ? (
+            <Link
+              href="/contact"
+              className="inline-flex items-center rounded-full border border-emerald-500 bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600"
+            >
+              Hire Me
+            </Link>
+          ) : null}
+          {siteConfig.resumeUrl ? (
+            <a
+              href={siteConfig.resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-full border border-zinc-200 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900/70 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              View Resume
+            </a>
+          ) : null}
         </div>
       </header>
 
@@ -180,6 +200,9 @@ export default function Home() {
           </Link>
           <Link href="/notes" className="link-hover transition-colors hover:text-zinc-700 dark:hover:text-zinc-200">
             Notes
+          </Link>
+          <Link href="/contact" className="link-hover transition-colors hover:text-zinc-700 dark:hover:text-zinc-200">
+            Contact
           </Link>
           <Link href="/about" className="link-hover transition-colors hover:text-zinc-700 dark:hover:text-zinc-200">
             About

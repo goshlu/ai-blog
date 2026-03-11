@@ -24,6 +24,9 @@ export function Footer() {
             <Link href="/projects" className="link-hover transition-colors hover:text-pink-500 dark:hover:text-pink-400">
               Projects
             </Link>
+            <Link href="/contact" className="link-hover transition-colors hover:text-pink-500 dark:hover:text-pink-400">
+              Contact
+            </Link>
             {showGithub ? (
               <a
                 href={siteConfig.githubUrl}
@@ -53,6 +56,9 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <span className="font-medium text-zinc-400 dark:text-zinc-500">Contact</span>
             <span className="text-zinc-200 dark:text-zinc-700">/</span>
+            <Link href="/contact" className="link-hover transition-colors hover:text-blue-500 dark:hover:text-blue-400">
+              Contact Page
+            </Link>
             {showEmail ? (
               <a
                 href={getMailtoHref(siteConfig.email)}
@@ -120,9 +126,9 @@ export function Footer() {
 
           <div className="flex items-center gap-4">
             <div className="cursor-pointer text-[13px] text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300">
-              English-first copy
+              English
             </div>
-            <div className="flex items-center rounded-full border border-zinc-200/50 bg-zinc-100/80 px-1.5 py-1.5 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/30 dark:bg-zinc-800/50">
+            <div className="flex items-center rounded-full border border-zinc-200/50 bg-zinc-100/80 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/30 dark:bg-zinc-800/50">
               <ThemeSwitch />
             </div>
           </div>

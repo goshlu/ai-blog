@@ -8,8 +8,8 @@ export default function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <header className="mb-16">
-        <h1 className="mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50 md:text-4xl">关于我</h1>
-        <p className="text-zinc-500 dark:text-zinc-400">了解更多关于我和这个博客的信息。</p>
+        <h1 className="mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50 md:text-4xl">About Me</h1>
+        <p className="text-zinc-500 dark:text-zinc-400">More about my work, this blog, and how I build products.</p>
       </header>
 
       <section className="mb-12">
@@ -23,12 +23,12 @@ export default function AboutPage() {
           </div>
         </div>
         <p className="leading-relaxed text-zinc-600 dark:text-zinc-300">
-          这里记录我的技术实践、项目构建过程和对产品开发的思考。这个博客会持续整理开发经验，也会保留一些更个人化的写作内容。
+          I use this site to document technical work, product thinking, and lessons from building with modern web stacks. It serves as both a writing space and a working portfolio.
         </p>
       </section>
 
       <section className="mb-12">
-        <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">技术栈</h3>
+        <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">Tech Stack</h3>
         <div className="flex flex-wrap gap-2">
           {['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Node.js', 'Python', 'SQLite', 'Prisma'].map((tech) => (
             <span
@@ -43,8 +43,15 @@ export default function AboutPage() {
 
       {(showGithub || showEmail) && (
         <section className="mb-12">
-          <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">联系我</h3>
+          <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">Contact</h3>
           <div className="flex flex-wrap gap-4">
+            <Link
+              href="/contact"
+              className="flex items-center gap-2 text-sm text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
+            >
+              <span>Contact Page</span>
+              <span className="text-zinc-400">/</span>
+            </Link>
             {showGithub ? (
               <a
                 href={siteConfig.githubUrl}
@@ -70,9 +77,9 @@ export default function AboutPage() {
       )}
 
       <section className="border-t border-zinc-100 pt-8 dark:border-zinc-800">
-        <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">关于本站</h3>
+        <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">About This Site</h3>
         <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-          本站使用 Next.js 与 Tailwind CSS 构建，围绕博客写作、订阅、SEO 和内容管理做了持续迭代。
+          The site runs on Next.js and Tailwind CSS, with ongoing work around content publishing, subscriptions, SEO, and portfolio presentation.
         </p>
       </section>
 
@@ -81,7 +88,7 @@ export default function AboutPage() {
           href="/"
           className="text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
         >
-          返回首页
+          Back Home
         </Link>
       </div>
     </div>
