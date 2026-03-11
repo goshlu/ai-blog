@@ -25,7 +25,7 @@ export default async function NotePage({ params }: Props) {
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
       <Link href="/" className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors text-sm mb-12 inline-block">
-        ← 返回首页
+        Back Home
       </Link>
 
       <article className="relative">
@@ -38,13 +38,13 @@ export default async function NotePage({ params }: Props) {
             {note.weather && (
               <>
                 <span className="text-zinc-200 dark:text-zinc-800">|</span>
-                <span>天气：{note.weather}</span>
+                <span>Weather: {note.weather}</span>
               </>
             )}
             {note.mood && (
               <>
                 <span className="text-zinc-200 dark:text-zinc-800">|</span>
-                <span>心情：{note.mood}</span>
+                <span>Mood: {note.mood}</span>
               </>
             )}
           </div>
@@ -56,7 +56,7 @@ export default async function NotePage({ params }: Props) {
 
         <footer className="pt-8 border-t border-zinc-100 dark:border-zinc-800/80 mb-16">
           <div className="text-sm text-zinc-400 dark:text-zinc-500 italic">
-            记录于某个角落
+            A note captured from daily life.
           </div>
         </footer>
       </article>

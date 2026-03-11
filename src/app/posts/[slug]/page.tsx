@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import remarkGfm from "remark-gfm";
 import { serialize } from "next-mdx-remote/serialize";
+import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/db";
 import { calculateReadingTime } from "@/lib/reading-time";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import { Comments } from "@/components/Comments";
 import { PostBodyMdx } from "@/components/PostBodyMdx";
 import { SocialShare } from "@/components/SocialShare";
 import { RelatedPosts } from "@/components/RelatedPosts";
-import type { Post, Tag } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +21,9 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-type PostWithTags = Post & {
-  tags: Tag[];
-};
+type PostWithTags = Prisma.PostGetPayload<{
+  include: { tags: true };
+}>;
 
 export async function generateStaticParams() {
   const posts = await prisma.post.findMany({
@@ -59,12 +59,8 @@ function extractTerms(post: PostWithTags) {
 }
 
 function scoreRelatedPost(currentPost: PostWithTags, candidate: PostWithTags) {
-  const currentTags = new Set(
-    currentPost.tags.map((tag) => tag.name.toLowerCase()),
-  );
-  const candidateTags = new Set(
-    candidate.tags.map((tag) => tag.name.toLowerCase()),
-  );
+  const currentTags = new Set(currentPost.tags.map((tag) => tag.name.toLowerCase()));
+  const candidateTags = new Set(candidate.tags.map((tag) => tag.name.toLowerCase()));
   let score = 0;
 
   currentTags.forEach((tag) => {
@@ -132,11 +128,11 @@ export default async function PostPage({ params }: Props) {
   ]);
 
   const readMinutes = calculateReadingTime(post.content);
-  const shareSummary = buildShareSummary(post as PostWithTags);
-  const relatedPosts = (relatedCandidates as PostWithTags[])
+  const shareSummary = buildShareSummary(post);
+  const relatedPosts = relatedCandidates
     .map((candidate) => ({
       ...candidate,
-      score: scoreRelatedPost(post as PostWithTags, candidate),
+      score: scoreRelatedPost(post, candidate),
     }))
     .filter((candidate) => candidate.score >= 0)
     .sort((a, b) => {
@@ -146,8 +142,9 @@ export default async function PostPage({ params }: Props) {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     })
     .slice(0, 3)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .map(({ score, ...candidate }) => candidate);
+
+  const postPath = `/posts/${post.slug || post.id}`;
 
   return (
     <div className="mt-6 md:mt-10">
@@ -157,13 +154,13 @@ export default async function PostPage({ params }: Props) {
             variant="ghost"
             className="-ml-3 h-8 rounded-full border border-transparent px-3 text-[13px] text-zinc-600 hover:border-zinc-200 hover:bg-zinc-100/60 dark:text-zinc-400 dark:hover:border-zinc-800 dark:hover:bg-zinc-900/70"
           >
-            返回首页
+            Back Home
           </Button>
         </Link>
 
         <div className="hidden items-center gap-2 text-[12px] md:flex">
           <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-zinc-500 dark:bg-zinc-900/80 dark:text-zinc-400">
-            博客 / 文章详情
+            Blog / Post Details
           </span>
         </div>
       </div>
@@ -175,13 +172,13 @@ export default async function PostPage({ params }: Props) {
           <div className="relative border-b border-zinc-100/80 px-5 pb-6 pt-7 dark:border-zinc-800/80 md:px-10 md:pt-9">
             <div className="mb-3 flex flex-wrap items-center justify-center gap-3 text-[12px] font-medium text-zinc-500">
               <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-300">
-                技术 / 博客
+                Tech / Blog
               </span>
               <time className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-                发布于 {post.date}
+                Published on {post.date}
               </time>
               <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-                约 {readMinutes} 分钟阅读
+                {readMinutes} min read
               </span>
               <ViewCounter slug={post.slug} />
             </div>
@@ -190,7 +187,7 @@ export default async function PostPage({ params }: Props) {
               {post.title}
             </h1>
 
-            {post.tags && post.tags.length > 0 && (
+            {post.tags.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2">
                 {post.tags.map((tag) => (
                   <span
@@ -208,7 +205,7 @@ export default async function PostPage({ params }: Props) {
             <div className="mx-auto max-w-3xl">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1 text-[11px] font-medium text-zinc-50 shadow-sm dark:bg-zinc-50 dark:text-zinc-900">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                关键洞察
+                Key Insights
               </div>
               <div className="rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-4 shadow-[0_10px_35px_rgba(15,23,42,0.12)] dark:border-zinc-800/90 dark:bg-[#05060a]/95 dark:shadow-[0_18px_60px_rgba(0,0,0,0.75)] md:px-6 md:py-5">
                 <SmartSummary content={post.content} />
@@ -222,13 +219,13 @@ export default async function PostPage({ params }: Props) {
 
           <footer className="relative flex flex-col gap-4 border-t border-zinc-100/80 px-5 py-5 dark:border-zinc-800/80 md:px-10 lg:flex-row lg:items-center lg:justify-between">
             <div className="text-[12px] text-zinc-400">
-              © {new Date().getFullYear()} 我的博客 / 文章阅读完毕
+              © {new Date().getFullYear()} My Blog / End of article
             </div>
             <div className="flex flex-col items-stretch gap-3 md:items-end">
               <SocialShare
                 title={post.title}
                 summary={shareSummary}
-                path={`/posts/${post.id}`}
+                path={postPath}
               />
               <div className="flex justify-end">
                 <TranslateButton content={post.content} />
