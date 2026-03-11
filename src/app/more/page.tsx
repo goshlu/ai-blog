@@ -3,24 +3,22 @@ import { siteConfig } from '@/lib/site';
 
 export default function MorePage() {
   const projectLinks = [
+    { label: 'Projects', href: '/projects', external: false },
     siteConfig.githubUrl
-      ? { label: 'GitHub 主页', href: siteConfig.githubUrl, external: true }
-      : null,
-    siteConfig.githubUrl
-      ? { label: '博客源码', href: siteConfig.githubUrl, external: true }
+      ? { label: 'GitHub Profile', href: siteConfig.githubUrl, external: true }
       : null,
   ].filter(Boolean) as Array<{ label: string; href: string; external: boolean }>;
 
   const links = [
     {
-      category: '项目',
+      category: 'Work',
       items: projectLinks,
     },
     {
-      category: '页面',
+      category: 'Pages',
       items: [
-        { label: '时间线', href: '/timeline', external: false },
-        { label: '邮件订阅', href: '/subscribe', external: false },
+        { label: 'Timeline', href: '/timeline', external: false },
+        { label: 'Subscribe', href: '/subscribe', external: false },
       ],
     },
   ].filter((section) => section.items.length > 0);
@@ -28,8 +26,8 @@ export default function MorePage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <header className="mb-12">
-        <h1 className="mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50 md:text-4xl">更多</h1>
-        <p className="text-zinc-500 dark:text-zinc-400">这里放一些站内导航和外部链接。</p>
+        <h1 className="mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50 md:text-4xl">More</h1>
+        <p className="text-zinc-500 dark:text-zinc-400">Quick links for site navigation and external destinations.</p>
       </header>
 
       <div className="space-y-8">
@@ -74,7 +72,7 @@ export default function MorePage() {
           href="/"
           className="text-sm text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
         >
-          返回首页
+          Back Home
         </Link>
       </div>
     </div>

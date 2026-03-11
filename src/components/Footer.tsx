@@ -9,17 +9,20 @@ export function Footer() {
   const showIcp = Boolean(siteConfig.icpNumber);
 
   return (
-    <footer className="mt-auto border-t border-zinc-100 bg-gradient-to-b from-transparent to-zinc-50/50 pt-12 pb-20 dark:border-zinc-800/50 dark:to-zinc-900/30">
+    <footer className="mt-auto border-t border-zinc-100 bg-gradient-to-b from-transparent to-zinc-50/50 pb-20 pt-12 dark:border-zinc-800/50 dark:to-zinc-900/30">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
         <div className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-[13px] text-zinc-500 dark:text-zinc-400">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-zinc-400 dark:text-zinc-500">关于</span>
+            <span className="font-medium text-zinc-400 dark:text-zinc-500">About</span>
             <span className="text-zinc-200 dark:text-zinc-700">/</span>
             <Link href="/about" className="link-hover transition-colors hover:text-pink-500 dark:hover:text-pink-400">
-              关于本站
+              About this site
             </Link>
             <Link href="/about" className="link-hover transition-colors hover:text-pink-500 dark:hover:text-pink-400">
-              关于我
+              About me
+            </Link>
+            <Link href="/projects" className="link-hover transition-colors hover:text-pink-500 dark:hover:text-pink-400">
+              Projects
             </Link>
             {showGithub ? (
               <a
@@ -34,28 +37,28 @@ export function Footer() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-medium text-zinc-400 dark:text-zinc-500">更多</span>
+            <span className="font-medium text-zinc-400 dark:text-zinc-500">Explore</span>
             <span className="text-zinc-200 dark:text-zinc-700">/</span>
             <Link href="/more" className="link-hover transition-colors hover:text-purple-500 dark:hover:text-purple-400">
-              导航
+              More
             </Link>
             <Link href="/timeline" className="link-hover transition-colors hover:text-purple-500 dark:hover:text-purple-400">
-              时间线
+              Timeline
             </Link>
             <Link href="/subscribe" className="link-hover transition-colors hover:text-purple-500 dark:hover:text-purple-400">
-              订阅
+              Subscribe
             </Link>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-medium text-zinc-400 dark:text-zinc-500">联系</span>
+            <span className="font-medium text-zinc-400 dark:text-zinc-500">Contact</span>
             <span className="text-zinc-200 dark:text-zinc-700">/</span>
             {showEmail ? (
               <a
                 href={getMailtoHref(siteConfig.email)}
                 className="link-hover transition-colors hover:text-blue-500 dark:hover:text-blue-400"
               >
-                发邮件
+                Email
               </a>
             ) : null}
             {showGithub ? (
@@ -84,11 +87,11 @@ export function Footer() {
               </Link>
               <span className="text-zinc-300 dark:text-zinc-700">/</span>
               <Link href="/sitemap.xml" className="link-hover hover:text-zinc-600 dark:hover:text-zinc-300">
-                站点地图
+                Sitemap
               </Link>
               <span className="text-zinc-300 dark:text-zinc-700">/</span>
               <Link href="/subscribe" className="link-hover hover:text-zinc-600 dark:hover:text-zinc-300">
-                订阅
+                Subscribe
               </Link>
             </div>
 
@@ -117,7 +120,7 @@ export function Footer() {
 
           <div className="flex items-center gap-4">
             <div className="cursor-pointer text-[13px] text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300">
-              简体中文
+              English-first copy
             </div>
             <div className="flex items-center rounded-full border border-zinc-200/50 bg-zinc-100/80 px-1.5 py-1.5 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/30 dark:bg-zinc-800/50">
               <ThemeSwitch />
