@@ -2,32 +2,32 @@ import { Thought } from '@/types/thought';
 
 export const thoughts: Thought[] = [
   {
-    id: '1',
-    content: '代码是写给人看的，顺便能在机器上运行。',
-    date: '2024-03-05',
+    id: 'thought-1',
+    content: 'A portfolio should reduce uncertainty for the person evaluating you.',
+    date: '2026-03-05',
   },
   {
-    id: '2',
-    content: '简单是可靠的先决条件。',
-    date: '2024-03-01',
+    id: 'thought-2',
+    content: 'The best product polish often comes from removing one small point of friction at a time.',
+    date: '2026-03-01',
   },
   {
-    id: '3',
-    content: '最好的代码是没有代码。',
-    date: '2024-02-28',
+    id: 'thought-3',
+    content: 'Typed content models are a quiet form of product quality.',
+    date: '2026-02-28',
   },
   {
-    id: '4',
-    content: '有时候，慢就是快。',
-    date: '2024-02-20',
+    id: 'thought-4',
+    content: 'Shipping fallback states is part of shipping the feature.',
+    date: '2026-02-20',
   },
   {
-    id: '5',
-    content: '技术是工具，不是目的。',
-    date: '2024-02-15',
+    id: 'thought-5',
+    content: 'Clear writing is one of the fastest ways to signal engineering maturity.',
+    date: '2026-02-15',
   },
 ];
 
 export function getAllThoughts(): Thought[] {
-  return thoughts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return [...thoughts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }

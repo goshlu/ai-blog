@@ -8,14 +8,13 @@ export default function ThinkingPage() {
     <div className="max-w-3xl mx-auto py-10 px-4">
       <header className="mb-12 text-center">
         <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">
-          思考
+          Thoughts
         </h1>
         <p className="text-zinc-400 dark:text-zinc-500 text-sm">
-          谢谢你听我诉说
+          Short ideas worth keeping.
         </p>
       </header>
 
-      {/* 思考列表 */}
       <div className="space-y-6">
         {thoughts.map((thought) => (
           <article
@@ -32,13 +31,12 @@ export default function ThinkingPage() {
         ))}
       </div>
 
-      {/* 返回首页 */}
       <div className="mt-16 text-center">
         <Link
           href="/"
           className="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
         >
-          ← 返回首页
+          Back Home
         </Link>
       </div>
     </div>

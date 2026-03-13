@@ -1,8 +1,7 @@
 import Link from 'next/link';
-import { getMailtoHref, siteConfig } from '@/lib/site';
+import { getMailtoHref, siteConfig, socialProfiles } from '@/lib/site';
 
 export default function AboutPage() {
-  const showGithub = Boolean(siteConfig.githubUrl);
   const showEmail = Boolean(siteConfig.email);
 
   return (
@@ -41,9 +40,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {(showGithub || showEmail) && (
+      {(socialProfiles.length > 0 || showEmail) && (
         <section className="mb-12">
-          <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">Contact</h3>
+          <h3 className="mb-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">Profiles</h3>
           <div className="flex flex-wrap gap-4">
             <Link
               href="/contact"
@@ -52,17 +51,6 @@ export default function AboutPage() {
               <span>Contact Page</span>
               <span className="text-zinc-400">/</span>
             </Link>
-            {showGithub ? (
-              <a
-                href={siteConfig.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
-              >
-                <span>GitHub</span>
-                <span className="text-zinc-400">/</span>
-              </a>
-            ) : null}
             {showEmail ? (
               <a
                 href={getMailtoHref(siteConfig.email)}
@@ -72,6 +60,18 @@ export default function AboutPage() {
                 <span className="text-zinc-400">/</span>
               </a>
             ) : null}
+            {socialProfiles.map((profile) => (
+              <a
+                key={profile.label}
+                href={profile.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
+              >
+                <span>{profile.label}</span>
+                <span className="text-zinc-400">/</span>
+              </a>
+            ))}
           </div>
         </section>
       )}

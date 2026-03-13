@@ -4,27 +4,35 @@ import prisma from '@/lib/db';
 import { notifySubscribersOfNewPost } from '@/lib/subscription-notify';
 import { requireAdminApiSession } from '@/lib/require-admin-api';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getAllPosts } from '@/lib/posts';
+
+function toStaticPostPayload() {
+  return getAllPosts().map((post) => ({
+    id: post.slug,
+    slug: post.slug,
+    title: post.title,
+    date: post.date,
+    excerpt: post.excerpt,
+    content: post.content,
+    tags: post.tags.split(',').map((tag) => ({ id: tag.trim().toLowerCase(), name: tag.trim() })),
+  }));
+}
 
 export async function GET() {
   try {
-    const posts = await prisma.post.findMany({
+    const dbPosts = await prisma.post.findMany({
       include: {
         tags: true,
       },
       orderBy: { date: 'desc' },
     });
 
-    return NextResponse.json({ success: true, posts });
+    const posts = dbPosts.length > 0 ? dbPosts : toStaticPostPayload();
+
+    return NextResponse.json({ success: true, posts, source: dbPosts.length > 0 ? 'database' : 'static' });
   } catch (error) {
     console.error('[API/POSTS] GET Error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: '获取文章失败',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: true, posts: toStaticPostPayload(), source: 'static' });
   }
 }
 
@@ -49,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     if (!title || !slug || !content) {
       return NextResponse.json(
-        { success: false, error: '标题、Slug 和内容为必填项' },
+        { success: false, error: 'Title, slug, and content are required.' },
         { status: 400 },
       );
     }
@@ -57,7 +65,7 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.post.findUnique({ where: { slug } });
     if (existing) {
       return NextResponse.json(
-        { success: false, error: '该 Slug 已存在' },
+        { success: false, error: 'This slug already exists.' },
         { status: 400 },
       );
     }
@@ -106,7 +114,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[API/POSTS] POST Error:', error);
     return NextResponse.json(
-      { success: false, error: '创建失败' },
+      { success: false, error: 'Failed to create post.' },
       { status: 500 },
     );
   }
@@ -138,7 +146,7 @@ export async function PUT(request: NextRequest) {
 
     if (!post) {
       return NextResponse.json(
-        { success: false, error: '文章不存在' },
+        { success: false, error: 'Post not found.' },
         { status: 404 },
       );
     }
@@ -170,7 +178,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('[API/POSTS] PUT Error:', error);
     return NextResponse.json(
-      { success: false, error: '更新失败' },
+      { success: false, error: 'Failed to update post.' },
       { status: 500 },
     );
   }
@@ -197,7 +205,7 @@ export async function DELETE(request: NextRequest) {
 
     if (!slug) {
       return NextResponse.json(
-        { success: false, error: 'Slug 为必填项' },
+        { success: false, error: 'Slug is required.' },
         { status: 400 },
       );
     }
@@ -212,7 +220,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('[API/POSTS] DELETE Error:', error);
     return NextResponse.json(
-      { success: false, error: '删除失败' },
+      { success: false, error: 'Failed to delete post.' },
       { status: 500 },
     );
   }

@@ -14,6 +14,7 @@ import { Comments } from "@/components/Comments";
 import { PostBodyMdx } from "@/components/PostBodyMdx";
 import { SocialShare } from "@/components/SocialShare";
 import { RelatedPosts } from "@/components/RelatedPosts";
+import { getAllPosts, getPostBySlug } from '@/lib/posts';
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +26,27 @@ type PostWithTags = Prisma.PostGetPayload<{
   include: { tags: true };
 }>;
 
+type DisplayPost = {
+  id: string;
+  slug: string;
+  title: string;
+  date: string;
+  excerpt: string | null;
+  content: string;
+  tags: Array<{ id: string; name: string }>;
+};
+
 export async function generateStaticParams() {
-  const posts = await prisma.post.findMany({
+  const dbPosts = await prisma.post.findMany({
     select: { id: true, slug: true },
   });
 
-  return posts.map((post) => ({ slug: post.slug || post.id }));
+  const staticPosts = getAllPosts().map((post) => ({ slug: post.slug }));
+  const dbParams = dbPosts.map((post) => ({ slug: post.slug || post.id }));
+
+  return [...dbParams, ...staticPosts].filter(
+    (value, index, array) => array.findIndex((item) => item.slug === value.slug) === index,
+  );
 }
 
 function stripMarkdown(content: string) {
@@ -45,12 +61,12 @@ function stripMarkdown(content: string) {
     .trim();
 }
 
-function buildShareSummary(post: PostWithTags) {
+function buildShareSummary(post: DisplayPost) {
   const base = post.excerpt?.trim() || post.content;
   return stripMarkdown(base).slice(0, 140);
 }
 
-function extractTerms(post: PostWithTags) {
+function extractTerms(post: DisplayPost) {
   const base = `${post.title} ${post.excerpt ?? ""} ${stripMarkdown(post.content).slice(0, 500)}`;
   const englishTerms = base.toLowerCase().match(/[a-z]{3,}/g) ?? [];
   const chineseTerms = base.match(/[\u4e00-\u9fa5]{2,8}/g) ?? [];
@@ -58,7 +74,7 @@ function extractTerms(post: PostWithTags) {
   return new Set([...englishTerms, ...chineseTerms].slice(0, 80));
 }
 
-function scoreRelatedPost(currentPost: PostWithTags, candidate: PostWithTags) {
+function scoreRelatedPost(currentPost: DisplayPost, candidate: DisplayPost) {
   const currentTags = new Set(currentPost.tags.map((tag) => tag.name.toLowerCase()));
   const candidateTags = new Set(candidate.tags.map((tag) => tag.name.toLowerCase()));
   let score = 0;
@@ -88,10 +104,34 @@ function scoreRelatedPost(currentPost: PostWithTags, candidate: PostWithTags) {
   return score;
 }
 
+function toDisplayPost(post: PostWithTags): DisplayPost {
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    date: post.date,
+    excerpt: post.excerpt,
+    content: post.content,
+    tags: post.tags.map((tag) => ({ id: tag.id, name: tag.name })),
+  };
+}
+
+function toStaticDisplayPost(post: ReturnType<typeof getPostBySlug> extends infer T ? Exclude<T, undefined> : never): DisplayPost {
+  return {
+    id: post.slug,
+    slug: post.slug,
+    title: post.title,
+    date: post.date,
+    excerpt: post.excerpt,
+    content: post.content,
+    tags: post.tags.split(',').map((tag) => ({ id: tag.trim().toLowerCase(), name: tag.trim() })),
+  };
+}
+
 export default async function PostPage({ params }: Props) {
   const { slug: identifier } = await params;
 
-  const post =
+  const dbPost =
     (await prisma.post.findUnique({
       where: { id: identifier },
       include: { tags: true },
@@ -101,50 +141,74 @@ export default async function PostPage({ params }: Props) {
       include: { tags: true },
     }));
 
-  if (!post) {
+  const staticPost = dbPost ? null : getPostBySlug(identifier);
+
+  if (!dbPost && !staticPost) {
     notFound();
   }
 
-  const [mdxSource, relatedCandidates] = await Promise.all([
-    serialize(post.content, {
+  const currentPost = dbPost ? toDisplayPost(dbPost) : toStaticDisplayPost(staticPost!);
+
+  const [mdxSource, dbRelatedCandidates] = await Promise.all([
+    serialize(currentPost.content, {
       mdxOptions: {
         remarkPlugins: [remarkGfm],
       },
     }),
-    prisma.post.findMany({
-      where: {
-        id: {
-          not: post.id,
-        },
-      },
-      include: {
-        tags: true,
-      },
-      take: 24,
-      orderBy: {
-        updatedAt: "desc",
-      },
-    }),
+    dbPost
+      ? prisma.post.findMany({
+          where: {
+            id: {
+              not: dbPost.id,
+            },
+          },
+          include: {
+            tags: true,
+          },
+          take: 24,
+          orderBy: {
+            updatedAt: "desc",
+          },
+        })
+      : Promise.resolve([] as PostWithTags[]),
   ]);
 
-  const readMinutes = calculateReadingTime(post.content);
-  const shareSummary = buildShareSummary(post);
-  const relatedPosts = relatedCandidates
-    .map((candidate) => ({
-      ...candidate,
-      score: scoreRelatedPost(post, candidate),
-    }))
-    .filter((candidate) => candidate.score >= 0)
-    .sort((a, b) => {
-      if (b.score !== a.score) {
-        return b.score - a.score;
-      }
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    })
-    .slice(0, 3)
-    .map(({ score, ...candidate }) => candidate);
+  const relatedPosts = dbPost
+    ? dbRelatedCandidates
+        .map((candidate) => toDisplayPost(candidate))
+        .map((candidate) => ({
+          ...candidate,
+          score: scoreRelatedPost(currentPost, candidate),
+        }))
+        .filter((candidate) => candidate.score >= 0)
+        .sort((a, b) => {
+          if (b.score !== a.score) {
+            return b.score - a.score;
+          }
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        })
+        .slice(0, 3)
+        .map(({ score, ...candidate }) => candidate)
+    : getAllPosts()
+        .filter((candidate) => candidate.slug !== currentPost.slug)
+        .map((candidate) => toStaticDisplayPost(candidate))
+        .map((candidate) => ({
+          ...candidate,
+          score: scoreRelatedPost(currentPost, candidate),
+        }))
+        .filter((candidate) => candidate.score >= 0)
+        .sort((a, b) => {
+          if (b.score !== a.score) {
+            return b.score - a.score;
+          }
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        })
+        .slice(0, 3)
+        .map(({ score, ...candidate }) => candidate);
 
-  const postPath = `/posts/${post.slug || post.id}`;
+  const readMinutes = calculateReadingTime(currentPost.content);
+  const shareSummary = buildShareSummary(currentPost);
+  const postPath = `/posts/${currentPost.slug || currentPost.id}`;
 
   return (
     <div className="mt-6 md:mt-10">
@@ -175,21 +239,21 @@ export default async function PostPage({ params }: Props) {
                 Tech / Blog
               </span>
               <time className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
-                Published on {post.date}
+                Published on {currentPost.date}
               </time>
               <span className="rounded-full bg-zinc-50 px-3 py-1 dark:bg-zinc-900/70">
                 {readMinutes} min read
               </span>
-              <ViewCounter slug={post.slug} />
+              <ViewCounter slug={currentPost.slug} />
             </div>
 
             <h1 className="mb-6 text-balance text-center text-2xl font-extrabold leading-snug tracking-tight text-zinc-950 dark:text-zinc-50 md:text-[2.4rem] md:leading-tight">
-              {post.title}
+              {currentPost.title}
             </h1>
 
-            {post.tags.length > 0 && (
+            {currentPost.tags.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2">
-                {post.tags.map((tag) => (
+                {currentPost.tags.map((tag) => (
                   <span
                     key={tag.id}
                     className="rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-[12px] font-medium text-pink-600 dark:border-pink-800/50 dark:bg-pink-900/20 dark:text-pink-400"
@@ -208,7 +272,7 @@ export default async function PostPage({ params }: Props) {
                 Key Insights
               </div>
               <div className="rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-4 shadow-[0_10px_35px_rgba(15,23,42,0.12)] dark:border-zinc-800/90 dark:bg-[#05060a]/95 dark:shadow-[0_18px_60px_rgba(0,0,0,0.75)] md:px-6 md:py-5">
-                <SmartSummary content={post.content} />
+                <SmartSummary content={currentPost.content} />
               </div>
             </div>
           </section>
@@ -223,24 +287,24 @@ export default async function PostPage({ params }: Props) {
             </div>
             <div className="flex flex-col items-stretch gap-3 md:items-end">
               <SocialShare
-                title={post.title}
+                title={currentPost.title}
                 summary={shareSummary}
                 path={postPath}
               />
               <div className="flex justify-end">
-                <TranslateButton content={post.content} />
+                <TranslateButton content={currentPost.content} />
               </div>
             </div>
           </footer>
         </article>
 
         <div className="sticky top-24 hidden self-start pt-2 lg:block">
-          <TableOfContents content={post.content} />
+          <TableOfContents content={currentPost.content} />
         </div>
       </div>
 
       <RelatedPosts posts={relatedPosts} />
-      <Comments slug={post.slug} />
+      <Comments slug={currentPost.slug} />
     </div>
   );
 }

@@ -8,10 +8,10 @@ export default function NotesListPage() {
     <div className="max-w-4xl mx-auto py-10 px-4">
       <header className="mb-12">
         <h1 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">
-          手记
+          Notes
         </h1>
         <p className="text-zinc-500 dark:text-zinc-400">
-          记录生活中的点滴思考与感悟
+          Short reflections, work logs, and personal observations.
         </p>
       </header>
 
@@ -32,7 +32,7 @@ export default function NotesListPage() {
             </div>
             {(note.mood || note.weather) && (
               <div className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-                {[note.mood, note.weather].filter(Boolean).join(' · ')}
+                {[note.mood, note.weather].filter(Boolean).join(' / ')}
               </div>
             )}
           </Link>
@@ -44,7 +44,7 @@ export default function NotesListPage() {
           href="/"
           className="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
         >
-          ← 返回首页
+          Back Home
         </Link>
       </div>
     </div>

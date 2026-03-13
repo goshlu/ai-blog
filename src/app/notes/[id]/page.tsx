@@ -4,19 +4,25 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import prisma from '@/lib/db';
 import { Comments } from '@/components/Comments';
+import { getAllNotes, getNoteById } from '@/lib/notes';
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 export async function generateStaticParams() {
-  const notes = await prisma.note.findMany();
-  return notes.map((note) => ({ id: note.id }));
+  const dbNotes = await prisma.note.findMany({ select: { id: true } });
+  const staticNotes = getAllNotes().map((note) => ({ id: note.id }));
+
+  return [...dbNotes, ...staticNotes].filter(
+    (value, index, array) => array.findIndex((item) => item.id === value.id) === index,
+  );
 }
 
 export default async function NotePage({ params }: Props) {
   const { id } = await params;
-  const note = await prisma.note.findUnique({ where: { id } });
+  const dbNote = await prisma.note.findUnique({ where: { id } });
+  const note = dbNote ?? getNoteById(id);
 
   if (!note) {
     notFound();

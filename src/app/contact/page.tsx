@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getHireMeMailtoHref, siteConfig } from '@/lib/site';
+import { getHireMeMailtoHref, siteConfig, socialProfiles } from '@/lib/site';
 
 const contactChannels = [
   siteConfig.email
@@ -8,14 +8,6 @@ const contactChannels = [
         value: siteConfig.email,
         href: getHireMeMailtoHref(siteConfig.email),
         description: 'Best for hiring, freelance work, and direct project discussions.',
-      }
-    : null,
-  siteConfig.githubUrl
-    ? {
-        label: 'GitHub',
-        value: siteConfig.githubUrl,
-        href: siteConfig.githubUrl,
-        description: 'Review repositories, commits, and public technical work.',
       }
     : null,
   siteConfig.resumeUrl
@@ -66,9 +58,34 @@ export default function ContactPage() {
 
       {!contactChannels.length ? (
         <div className="rounded-[1.75rem] border border-dashed border-zinc-300 px-6 py-10 text-center text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          Add `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_GITHUB_URL`, or `NEXT_PUBLIC_RESUME_URL` to enable contact options.
+          Add `NEXT_PUBLIC_CONTACT_EMAIL` or `NEXT_PUBLIC_RESUME_URL` to enable direct contact options.
         </div>
       ) : null}
+
+      <section className="mt-14">
+        <div className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Social and technical profiles</div>
+        {socialProfiles.length ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {socialProfiles.map((profile) => (
+              <a
+                key={profile.label}
+                href={profile.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-[1.5rem] border border-zinc-200/80 bg-zinc-50/80 p-5 transition-colors hover:border-zinc-300 hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-zinc-700 dark:hover:bg-zinc-900/80"
+              >
+                <div className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-50">{profile.label}</div>
+                <div className="mb-2 break-all text-xs text-zinc-500 dark:text-zinc-400">{profile.href}</div>
+                <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-300">{profile.description}</p>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[1.5rem] border border-dashed border-zinc-300 px-6 py-8 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+            Add `NEXT_PUBLIC_LINKEDIN_URL`, `NEXT_PUBLIC_X_URL`, `NEXT_PUBLIC_JUEJIN_URL`, `NEXT_PUBLIC_ZHIHU_URL`, `NEXT_PUBLIC_LEETCODE_URL`, or `NEXT_PUBLIC_V2EX_URL` to build out the public profile matrix.
+          </div>
+        )}
+      </section>
 
       <section className="mt-14 rounded-[1.75rem] border border-zinc-200/80 bg-zinc-50/80 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
         <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">What to include</div>

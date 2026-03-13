@@ -4,6 +4,7 @@ import { siteConfig } from '@/lib/site';
 export default function MorePage() {
   const projectLinks = [
     { label: 'Projects', href: '/projects', external: false },
+    { label: 'Gallery', href: '/gallery', external: false },
     siteConfig.githubUrl
       ? { label: 'GitHub Profile', href: siteConfig.githubUrl, external: true }
       : null,
@@ -19,6 +20,7 @@ export default function MorePage() {
       items: [
         { label: 'Timeline', href: '/timeline', external: false },
         { label: 'Subscribe', href: '/subscribe', external: false },
+        { label: 'Contact', href: '/contact', external: false },
       ],
     },
   ].filter((section) => section.items.length > 0);

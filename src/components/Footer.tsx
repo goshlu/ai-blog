@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { ThemeSwitch } from './ThemeSwitch';
-import { getMailtoHref, siteConfig } from '@/lib/site';
+import { getMailtoHref, siteConfig, socialProfiles } from '@/lib/site';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
-  const showGithub = Boolean(siteConfig.githubUrl);
   const showEmail = Boolean(siteConfig.email);
   const showIcp = Boolean(siteConfig.icpNumber);
+  const featuredProfiles = socialProfiles.slice(0, 4);
 
   return (
     <footer className="mt-auto border-t border-zinc-100 bg-gradient-to-b from-transparent to-zinc-50/50 pb-20 pt-12 dark:border-zinc-800/50 dark:to-zinc-900/30">
@@ -27,16 +27,6 @@ export function Footer() {
             <Link href="/contact" className="link-hover transition-colors hover:text-pink-500 dark:hover:text-pink-400">
               Contact
             </Link>
-            {showGithub ? (
-              <a
-                href={siteConfig.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="link-hover transition-colors hover:text-pink-500 dark:hover:text-pink-400"
-              >
-                GitHub
-              </a>
-            ) : null}
           </div>
 
           <div className="flex items-center gap-2">
@@ -54,7 +44,7 @@ export function Footer() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-medium text-zinc-400 dark:text-zinc-500">Contact</span>
+            <span className="font-medium text-zinc-400 dark:text-zinc-500">Profiles</span>
             <span className="text-zinc-200 dark:text-zinc-700">/</span>
             <Link href="/contact" className="link-hover transition-colors hover:text-blue-500 dark:hover:text-blue-400">
               Contact Page
@@ -67,16 +57,17 @@ export function Footer() {
                 Email
               </a>
             ) : null}
-            {showGithub ? (
+            {featuredProfiles.map((profile) => (
               <a
-                href={siteConfig.githubUrl}
+                key={profile.label}
+                href={profile.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="link-hover transition-colors hover:text-blue-500 dark:hover:text-blue-400"
               >
-                GitHub
+                {profile.label}
               </a>
-            ) : null}
+            ))}
           </div>
         </div>
 

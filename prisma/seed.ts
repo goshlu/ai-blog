@@ -1,24 +1,23 @@
-import { PrismaClient } from '@prisma/client';
+﻿import { PrismaClient } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { posts } from '../src/lib/posts';
 import { notes } from '../src/lib/notes';
 import { thoughts } from '../src/lib/thoughts';
 
 const adapter = new PrismaLibSql({
-  url: 'file:./dev.db',
+  url: process.env.DATABASE_URL || 'file:./prisma/dev.db',
 });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('Seeding database...');
 
-  // 清空现有数据
   await prisma.thought.deleteMany();
   await prisma.note.deleteMany();
+  await prisma.tag.deleteMany();
   await prisma.post.deleteMany();
 
-  // 迁移文章
-  console.log('Migrating posts...');
+  console.log('Seeding posts...');
   for (const post of posts) {
     await prisma.post.create({
       data: {
@@ -27,13 +26,18 @@ async function main() {
         date: post.date,
         excerpt: post.excerpt,
         content: post.content,
+        tags: {
+          connectOrCreate: post.tags.split(',').map((tagName) => ({
+            where: { name: tagName.trim() },
+            create: { name: tagName.trim() },
+          })),
+        },
       },
     });
   }
-  console.log(`Migrated ${posts.length} posts`);
+  console.log(`Seeded ${posts.length} posts`);
 
-  // 迁移手记
-  console.log('Migrating notes...');
+  console.log('Seeding notes...');
   for (const note of notes) {
     await prisma.note.create({
       data: {
@@ -46,10 +50,9 @@ async function main() {
       },
     });
   }
-  console.log(`Migrated ${notes.length} notes`);
+  console.log(`Seeded ${notes.length} notes`);
 
-  // 迁移思考
-  console.log('Migrating thoughts...');
+  console.log('Seeding thoughts...');
   for (const thought of thoughts) {
     await prisma.thought.create({
       data: {
@@ -59,9 +62,9 @@ async function main() {
       },
     });
   }
-  console.log(`Migrated ${thoughts.length} thoughts`);
+  console.log(`Seeded ${thoughts.length} thoughts`);
 
-  console.log('Database seeded successfully!');
+  console.log('Database seeded successfully.');
 }
 
 main()

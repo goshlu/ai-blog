@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getAllNotes } from '@/lib/notes';
 
-// GET - 获取所有手记
 export async function GET() {
-  const notes = await prisma.note.findMany({
-    orderBy: { date: 'desc' },
-  });
-  return NextResponse.json({ success: true, notes });
+  try {
+    const dbNotes = await prisma.note.findMany({
+      orderBy: { date: 'desc' },
+    });
+
+    const notes = dbNotes.length > 0 ? dbNotes : getAllNotes();
+
+    return NextResponse.json({ success: true, notes, source: dbNotes.length > 0 ? 'database' : 'static' });
+  } catch (error) {
+    console.error('[API/NOTES] GET Error:', error);
+    return NextResponse.json({ success: true, notes: getAllNotes(), source: 'static' });
+  }
 }
